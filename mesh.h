@@ -3,9 +3,8 @@
 
 #include "renderObject.h"
 
-struct Mesh : RenderObject
+class Mesh : public RenderObject
 {
-    int material_id;
     std::vector<Face> faces;
     Mesh();
     bool intersect(const Ray& ray, float& t) const override;

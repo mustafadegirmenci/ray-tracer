@@ -3,9 +3,8 @@
 
 #include "renderObject.h"
 
-struct Sphere : RenderObject
+class Sphere : public RenderObject
 {
-    int material_id;
     int center_vertex_id;
     float radius;
     Sphere();

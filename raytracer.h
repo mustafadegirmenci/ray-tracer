@@ -13,14 +13,14 @@ typedef struct {
 } RenderResult;
 
 class RayTracer{
-    const std::vector<RenderObject>& renderObjects;
+    std::vector<RenderObject*> renderObjects;
 
 public:
     RayTracer();
     RenderResult render();
 
 private:
-    Vec3f trace(const Ray& ray);
+    RenderObject* trace(const Ray& ray);
 
 };
 

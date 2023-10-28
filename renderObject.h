@@ -6,8 +6,10 @@
 #include <vector>
 #include <math.h>
 
-struct RenderObject{
-    virtual bool intersect(const Ray& ray, float& t) const;
+class RenderObject{
+public:
+    int material_id;
+    virtual bool intersect(const Ray& ray, float& t) const = 0;
 };
 
 #endif //RAY_TRACER_RENDEROBJECT_H
