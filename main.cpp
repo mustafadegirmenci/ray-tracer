@@ -1,11 +1,9 @@
-#include "parser.h"
 #include "ppm.h"
 #include "raytracer.h"
+#include "globals.h"
 
 int main(int argc, char* argv[])
 {
-    parser::Scene scene;
-
     scene.loadFromXml(argv[1]);
 
     RenderResult result = render();
