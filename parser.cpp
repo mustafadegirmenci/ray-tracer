@@ -216,3 +216,7 @@ void parser::Scene::loadFromXml(const std::string &filepath)
         element = element->NextSiblingElement("Sphere");
     }
 }
+
+Vec3f parser::Scene::getVertex(int index) {
+    return vertex_data[index];
+}
