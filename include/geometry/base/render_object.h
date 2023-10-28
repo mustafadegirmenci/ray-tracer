@@ -1,5 +1,5 @@
-#ifndef RAY_TRACER_RENDEROBJECT_H
-#define RAY_TRACER_RENDEROBJECT_H
+#ifndef RAY_TRACER_RENDER_OBJECT_H
+#define RAY_TRACER_RENDER_OBJECT_H
 
 #include "../../utilities.h"
 #include <vector>
@@ -8,7 +8,6 @@
 class RenderObject{
 public:
     int material_id;
-    virtual bool intersect(const Ray& ray, float& t) const = 0;
 };
 
-#endif //RAY_TRACER_RENDEROBJECT_H
+#endif //RAY_TRACER_RENDER_OBJECT_H

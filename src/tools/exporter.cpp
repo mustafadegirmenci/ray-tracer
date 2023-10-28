@@ -1,7 +1,7 @@
-#include "ppm.h"
+#include "../../include/tools/exporter.h"
 #include <stdexcept>
 
-void write_ppm(const char* filename, unsigned char* data, int width, int height)
+void Exporter::write_ppm(const char* filename, unsigned char* data, int width, int height)
 {
     FILE *outfile;
 
@@ -36,4 +36,10 @@ void write_ppm(const char* filename, unsigned char* data, int width, int height)
     }
 
     (void) fclose(outfile);
+}
+
+void Exporter::exportPpm(vector<RenderResult> results) {
+    for (int i = 0; i < results.size(); i++) {
+        write_ppm(results[i].image_name, results[i].image, results[i].width, results[i].height);
+    }
 }
