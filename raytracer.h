@@ -16,12 +16,12 @@ class RayTracer{
     const std::vector<RenderObject>& renderObjects;
 
 public:
-    explicit RayTracer(const vector<RenderObject> &renderObjects);
+    RayTracer();
+    RenderResult render();
 
 private:
     Vec3f trace(const Ray& ray);
 
-    RenderResult render();
 };
 
 #endif // RAYTRACER_H

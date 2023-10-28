@@ -5,8 +5,6 @@
 #include <cmath>
 #include <limits>
 
-RayTracer::RayTracer(const vector<RenderObject> &renderObjects) : renderObjects(renderObjects) {}
-
 #pragma region Tracing
 
 Vec3f trace(const Ray& ray, const std::vector<RenderObject>& renderObjects) {
@@ -33,12 +31,9 @@ Vec3f trace(const Ray& ray, const std::vector<RenderObject>& renderObjects) {
 }
 
 
-RenderResult render() {
-    // Implementation for rendering
-    // ...
-    RenderResult result;
-    return result;
-}
-
 #pragma endregion Tracing
 
+RenderResult RayTracer::render() {
+    
+    return RenderResult();
+}
