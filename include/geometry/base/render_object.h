@@ -1,8 +1,7 @@
 #ifndef RAY_TRACER_RENDEROBJECT_H
 #define RAY_TRACER_RENDEROBJECT_H
 
-#include "utils.h"
-#include "globals.h"
+#include "../../utilities.h"
 #include <vector>
 #include <math.h>
 
