@@ -2,6 +2,8 @@
 #define RAY_TRACER_UTILITIES_H
 
 #include <string>
+#include <cmath>
+#include <vector>
 
 class Triangle;
 class Sphere;

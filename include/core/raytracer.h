@@ -2,7 +2,6 @@
 #define RAYTRACER_H
 
 #include <vector>
-#include "../geometry/mesh.h"
 #include "../geometry/triangle.h"
 #include "../geometry/sphere.h"
 
