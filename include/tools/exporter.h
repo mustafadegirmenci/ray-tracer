@@ -5,8 +5,8 @@
 
 class Exporter {
 public:
-    void exportPpm(vector<RenderResult> results);
-    void write_ppm(const char* filename, unsigned char* data, int width, int height);
+    void exportPpm(const vector<RenderResult>& results) const;
+    void write_ppm(RenderResult& result) const;
 };
 
 #endif // __ppm_h__

@@ -34,7 +34,7 @@ bool RayTracer::raycast(const Ray& ray, RenderObject& hitObject, float &tMin) {
 }
 
 //TODO: Complete
-vector<RenderResult> RayTracer::render(Scene sceneToRender) {
+vector<RenderResult> RayTracer::render(const Scene& sceneToRender) {
     scene = sceneToRender;
 
     size_t cameraCount = scene.cameras.size();
@@ -42,27 +42,35 @@ vector<RenderResult> RayTracer::render(Scene sceneToRender) {
 
     for (int i = 0; i < cameraCount; i++) {
         Camera camera = scene.cameras[i];
+        RenderResult result(camera.image_name.c_str(), camera.image_width, camera.image_height);
 
-        for (int j = 0; j < camera.image_height; j++) {
-            for (int k = 0; k < camera.image_width; k++) {
-                Ray ray = calculateRay(camera, k, j);
+        for (int y = 0; y < camera.image_height; y++) {
+            for (int x = 0; x < camera.image_width; x++) {
+                result.setPixel(x, y, (unsigned char)55, (unsigned char)55, (unsigned char)55);
+                continue;
 
-                RenderObject hitObject;
+                Ray ray = calculateRay(camera, x, y);
+
+                RenderObject hitObject{};
                 float tHit;
                 if (raycast(ray, hitObject, tHit)){
                     //Set color as object's color
+                    result.setPixel(x, y, (unsigned char)0, (unsigned char)0, (unsigned char)255);
                 } else{
                     //Set color as background color
+                    result.setPixel(x, y, (unsigned char)255, (unsigned char)0, (unsigned char)0);
                 }
             }
         }
+
+        results.push_back(result);
     }
 
     return results;
 }
 
 //TODO: Check
-Ray RayTracer::calculateRay(Camera camera, int x, int y) {
+Ray RayTracer::calculateRay(const Camera& camera, int x, int y) {
     // Calculate the direction vector from the camera position to the pixel on the image plane
     float image_aspect_ratio = static_cast<float>(camera.image_width) / static_cast<float>(camera.image_height);
     float pixel_width = 2.0f * camera.near_distance * tan(camera.near_plane.w / 2.0f);
@@ -138,5 +146,13 @@ bool RayTracer::intersectTriangle(Triangle triangle, const Ray &ray, float &t) c
     return false;
 }
 
+RenderResult::RenderResult(const char *imageName, int width, int height) : image_name(imageName), width(width), height(height){
+    image = new unsigned char [width * height * 3];
+}
 
-
+void RenderResult::setPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b) {
+    int index = (y * width) + x;
+    image[index++] = r;
+    image[index++] = g;
+    image[index++] = b;
+}
