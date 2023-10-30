@@ -3,76 +3,70 @@
 #include <cstring>
 #include <iostream>
 
-bool RayTracer::raycast(const Ray& ray, RenderObject& hitObject, float &tMin) {
-    bool hit = false;
+bool RayTracer::raycast(const Ray& ray, RenderObject& hitObject, float& tMin) {
+	bool hit = false;
 
-    tMin = std::numeric_limits<float>::max();
+	tMin = std::numeric_limits<float>::max();
 
-    //Trace spheres
-    float tSphere;
-    size_t sphereCount = scene.spheres.size();
+	//Trace spheres
+	float tSphere;
+	size_t sphereCount = scene.spheres.size();
 
-    for (int i = 0; i < sphereCount; i++) {
-        if (intersectSphere(scene.spheres[i], ray, tSphere) && tSphere < tMin) {
-            hit = true;
-            tMin = tSphere;
-            hitObject = scene.spheres[i];
-        }
-    }
+	for (int i = 0; i < sphereCount; i++) {
+		if (intersectSphere(scene.spheres[i], ray, tSphere) && tSphere < tMin) {
+			hit = true;
+			tMin = tSphere;
+			hitObject = scene.spheres[i];
+		}
+	}
 
-    //Trace triangles
-    float tTriangle;
-    size_t triangleCount = scene.triangles.size();
+	//Trace triangles
+	float tTriangle;
+	size_t triangleCount = scene.triangles.size();
 
-    for (int i = 0; i < triangleCount; i++) {
-        if (intersectTriangle(scene.triangles[i], ray, tTriangle) && tTriangle < tMin) {
-            hit = true;
-            tMin = tTriangle;
-            hitObject = scene.triangles[i];
-        }
-    }
+	for (int i = 0; i < triangleCount; i++) {
+		if (intersectTriangle(scene.triangles[i], ray, tTriangle) && tTriangle < tMin) {
+			hit = true;
+			tMin = tTriangle;
+			hitObject = scene.triangles[i];
+		}
+	}
 
-    return hit;
+	return hit;
 }
 
 //TODO: Complete
 vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
-    scene = sceneToRender;
+	scene = sceneToRender;
 
-    size_t cameraCount = scene.cameras.size();
-    vector<RenderResult*> results;
+	size_t cameraCount = scene.cameras.size();
+	vector<RenderResult*> results;
 
-    for (int i = 0; i < cameraCount; i++) {
-        Camera camera = scene.cameras[i];
-        auto* result = new RenderResult(camera.image_name.c_str(), camera.image_width, camera.image_height);
+	for (int i = 0; i < cameraCount; i++) {
+		Camera camera = scene.cameras[i];
+		auto* result = new RenderResult(camera.image_name.c_str(), camera.image_width, camera.image_height);
 
-        for (int y = 0; y < camera.image_height; y++) {
-            for (int x = 0; x < camera.image_width; x++) {
-                if(x == 0 && y == 0){
-                    result->setPixel(x, y, (unsigned char)0, (unsigned char)255, (unsigned char)0);
-                }else{
-                    result->setPixel(x, y, (unsigned char)0, (unsigned char)0, (unsigned char)255);
-                }
-                continue;
+		for (int y = 0; y < camera.image_height; y++) {
+			for (int x = 0; x < camera.image_width; x++) {
+				Ray ray = calculateRay(camera, x, y);
 
-                Ray ray = calculateRay(camera, x, y);
+				RenderObject hitObject{};
+				float tHit;
+				if (raycast(ray, hitObject, tHit)) {
+					// Set color as object's color
+					result->setPixel(x, y, (unsigned char) scene.materials[hitObject.material_id].diffuse.x, (unsigned char) scene.materials[hitObject.material_id].diffuse.y, (unsigned char) scene.materials[hitObject.material_id].diffuse.z);
+				}
+				else {
+					// Set color as background color
+					result->setPixel(x, y, (unsigned char) scene.background_color.r, (unsigned char) scene.background_color.g, (unsigned char) scene.background_color.b);
+				}
+			}
+		}
 
-                RenderObject hitObject{};
-                float tHit;
-                if (raycast(ray, hitObject, tHit)){
-                    // Set color as object's color
-                    result->setPixel(x, y, (unsigned char)0, (unsigned char)0, (unsigned char)255);
-                } else {
-                    // Set color as background color
-                    result->setPixel(x, y, (unsigned char)255, (unsigned char)0, (unsigned char)0);
-                }
-            }
-        }
+		results.push_back(result);
+	}
 
-        results.push_back(result);
-    }
-
-    return results;
+	return results;
 }
 
 
@@ -107,68 +101,73 @@ Ray RayTracer::calculateRay(const Camera& camera, int x, int y) {
     return ray;
 }
 
-bool RayTracer::intersectSphere(Sphere sphere, const Ray &ray, float &t) const {
-    Vec3f oc = ray.origin - scene.vertex_data[sphere.center_vertex_id];
-    float a = ray.direction.dot(ray.direction);
-    float b = 2.0f * oc.dot(ray.direction);
-    float c = oc.dot(oc) - sphere.radius * sphere.radius;
-    float discriminant = b * b - 4 * a * c;
+bool RayTracer::intersectSphere(Sphere sphere, const Ray& ray, float& t) const {
+	Vec3f oc = ray.origin - scene.vertex_data[sphere.center_vertex_id];
+	float a = ray.direction.dot(ray.direction);
+	float b = 2.0f * oc.dot(ray.direction);
+	float c = oc.dot(oc) - sphere.radius * sphere.radius;
+	float discriminant = b * b - 4 * a * c;
 
-    if (discriminant > 0) {
-        float t1 = (-b - std::sqrt(discriminant)) / (2.0f * a);
-        float t2 = (-b + std::sqrt(discriminant)) / (2.0f * a);
-        t = (t1 < t2) ? t1 : t2;
-        return true;
-    }
-    return false;
+	if (discriminant > 0) {
+		float t1 = (-b - std::sqrt(discriminant)) / (2.0f * a);
+		float t2 = (-b + std::sqrt(discriminant)) / (2.0f * a);
+		t = (t1 < t2) ? t1 : t2;
+		return true;
+	}
+	else if (discriminant == 0) {
+		float t = -b / (2.0f * a);
+		return true;
+	}
+
+	return false;
 }
 
-bool RayTracer::intersectTriangle(Triangle triangle, const Ray &ray, float &t) const {
-    Vec3f e1 = scene.vertex_data[triangle.indices.v1_id] - scene.vertex_data[triangle.indices.v0_id];
-    Vec3f e2 = scene.vertex_data[triangle.indices.v2_id] - scene.vertex_data[triangle.indices.v0_id];
-    Vec3f h = ray.direction.cross(e2);
-    float a = e1.dot(h);
+bool RayTracer::intersectTriangle(Triangle triangle, const Ray& ray, float& t) const {
+	Vec3f e1 = scene.vertex_data[triangle.indices.v1_id] - scene.vertex_data[triangle.indices.v0_id];
+	Vec3f e2 = scene.vertex_data[triangle.indices.v2_id] - scene.vertex_data[triangle.indices.v0_id];
+	Vec3f h = ray.direction.cross(e2);
+	float a = e1.dot(h);
 
-    if (a > -std::numeric_limits<float>::epsilon() && a < std::numeric_limits<float>::epsilon())
-        return false;
+	if (a > -std::numeric_limits<float>::epsilon() && a < std::numeric_limits<float>::epsilon())
+		return false;
 
-    float f = 1.0f / a;
-    Vec3f s = ray.origin - scene.vertex_data[triangle.indices.v0_id];
-    float u = f * s.dot(h);
+	float f = 1.0f / a;
+	Vec3f s = ray.origin - scene.vertex_data[triangle.indices.v0_id];
+	float u = f * s.dot(h);
 
-    if (u < 0.0f || u > 1.0f)
-        return false;
+	if (u < 0.0f || u > 1.0f)
+		return false;
 
-    Vec3f q = s.cross(e1);
-    float v = f * ray.direction.dot(q);
+	Vec3f q = s.cross(e1);
+	float v = f * ray.direction.dot(q);
 
-    if (v < 0.0f || u + v > 1.0f)
-        return false;
+	if (v < 0.0f || u + v > 1.0f)
+		return false;
 
-    t = f * e2.dot(q);
+	t = f * e2.dot(q);
 
-    if (t > std::numeric_limits<float>::epsilon())
-        return true;
+	if (t > std::numeric_limits<float>::epsilon())
+		return true;
 
-    return false;
+	return false;
 }
 
-RenderResult::RenderResult(const char *imageName, int width, int height) : width(width), height(height) {
-    image_name = new char[strlen(imageName) + 1];
-    strcpy(image_name, imageName);
+RenderResult::RenderResult(const char* imageName, int width, int height) : width(width), height(height) {
+	image_name = new char[strlen(imageName) + 1];
+	strcpy(image_name, imageName);
 
-    image = new unsigned char[width * height * 3];
+	image = new Color[width * height];
 }
 
 RenderResult::~RenderResult() {
-    delete[] image;
+	delete[] image;
 }
 
 void RenderResult::setPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b) {
-    int index = (y * 3 * width) + (3 * x);
-    image[index++] = r;
-    image[index++] = g;
-    image[index++] = b;
+	int index = (y * width) + x;
+	image[index].r = r;
+	image[index].g = g;
+	image[index].b = b;
 
-    if (index == 640001) std::cout << "hit" << std::endl;
+	if (index == 640001) std::cout << "hit" << std::endl;
 }

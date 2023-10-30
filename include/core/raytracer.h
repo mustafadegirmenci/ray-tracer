@@ -13,7 +13,7 @@ public:
 
 public:
     char* image_name;
-    unsigned char* image;
+    Color* image;
     int width;
     int height;
 };

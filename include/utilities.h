@@ -26,9 +26,9 @@ struct Vec3f
     Vec3f normalized() const;
 };
 
-struct Vec3i
+struct Color
 {
-    int x, y, z;
+    int r, g, b;
 };
 
 struct Vec4f
@@ -76,7 +76,7 @@ struct Face
 
 struct Scene
 {
-    Vec3i background_color;
+    Color background_color;
     float shadow_ray_epsilon;
     int max_recursion_depth;
     std::vector<Camera> cameras;

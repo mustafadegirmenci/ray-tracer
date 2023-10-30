@@ -34,7 +34,7 @@ Scene Importer::importXml(const std::string &filepath)
     {
         stream << "0 0 0" << std::endl;
     }
-    stream >> scene.background_color.x >> scene.background_color.y >> scene.background_color.z;
+    stream >> scene.background_color.r >> scene.background_color.g >> scene.background_color.b;
 
     //Get ShadowRayEpsilon
     element = root->FirstChildElement("ShadowRayEpsilon");
