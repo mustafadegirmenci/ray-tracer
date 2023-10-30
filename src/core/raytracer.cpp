@@ -48,7 +48,11 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 
         for (int y = 0; y < camera.image_height; y++) {
             for (int x = 0; x < camera.image_width; x++) {
-                result->setPixel(x, y, (unsigned char)255, (unsigned char)255, (unsigned char)255);
+                if(x == 0 && y == 0){
+                    result->setPixel(x, y, (unsigned char)0, (unsigned char)255, (unsigned char)0);
+                }else{
+                    result->setPixel(x, y, (unsigned char)0, (unsigned char)0, (unsigned char)255);
+                }
                 continue;
 
                 Ray ray = calculateRay(camera, x, y);
@@ -161,8 +165,10 @@ RenderResult::~RenderResult() {
 }
 
 void RenderResult::setPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b) {
-    int index = (y * width) + x;
+    int index = (y * 3 * width) + (3 * x);
     image[index++] = r;
     image[index++] = g;
     image[index++] = b;
+
+    if (index == 640001) std::cout << "hit" << std::endl;
 }
