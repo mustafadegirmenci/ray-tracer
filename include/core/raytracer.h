@@ -8,10 +8,11 @@
 class RenderResult {
 public:
     RenderResult(const char *imageName, int width, int height);
+    ~RenderResult();
     void setPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b);
 
 public:
-    string image_name;
+    char* image_name;
     unsigned char* image;
     int width;
     int height;
@@ -21,7 +22,7 @@ class RayTracer{
     Scene scene;
 
 public:
-    vector<RenderResult> render(const Scene&);
+    vector<RenderResult*> render(const Scene&);
 
 private:
     Ray calculateRay(const Camera& camera, int x, int y);

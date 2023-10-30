@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
     Scene parsedScene = importer.importXml(argv[1]);
 
     RayTracer rayTracer;
-    vector<RenderResult> results = rayTracer.render(parsedScene);
+    vector<RenderResult*> results = rayTracer.render(parsedScene);
 
     Exporter exporter;
     exporter.exportPpm(results);

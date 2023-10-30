@@ -1,5 +1,7 @@
 #include "../../include/core/raytracer.h"
 #include <limits>
+#include <cstring>
+#include <iostream>
 
 bool RayTracer::raycast(const Ray& ray, RenderObject& hitObject, float &tMin) {
     bool hit = false;
@@ -34,19 +36,19 @@ bool RayTracer::raycast(const Ray& ray, RenderObject& hitObject, float &tMin) {
 }
 
 //TODO: Complete
-vector<RenderResult> RayTracer::render(const Scene& sceneToRender) {
+vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
     scene = sceneToRender;
 
     size_t cameraCount = scene.cameras.size();
-    vector<RenderResult> results;
+    vector<RenderResult*> results;
 
     for (int i = 0; i < cameraCount; i++) {
         Camera camera = scene.cameras[i];
-        RenderResult result(camera.image_name.c_str(), camera.image_width, camera.image_height);
+        auto* result = new RenderResult(camera.image_name.c_str(), camera.image_width, camera.image_height);
 
         for (int y = 0; y < camera.image_height; y++) {
             for (int x = 0; x < camera.image_width; x++) {
-                result.setPixel(x, y, (unsigned char)55, (unsigned char)55, (unsigned char)55);
+                result->setPixel(x, y, (unsigned char)255, (unsigned char)255, (unsigned char)255);
                 continue;
 
                 Ray ray = calculateRay(camera, x, y);
@@ -54,11 +56,11 @@ vector<RenderResult> RayTracer::render(const Scene& sceneToRender) {
                 RenderObject hitObject{};
                 float tHit;
                 if (raycast(ray, hitObject, tHit)){
-                    //Set color as object's color
-                    result.setPixel(x, y, (unsigned char)0, (unsigned char)0, (unsigned char)255);
-                } else{
-                    //Set color as background color
-                    result.setPixel(x, y, (unsigned char)255, (unsigned char)0, (unsigned char)0);
+                    // Set color as object's color
+                    result->setPixel(x, y, (unsigned char)0, (unsigned char)0, (unsigned char)255);
+                } else {
+                    // Set color as background color
+                    result->setPixel(x, y, (unsigned char)255, (unsigned char)0, (unsigned char)0);
                 }
             }
         }
@@ -68,6 +70,7 @@ vector<RenderResult> RayTracer::render(const Scene& sceneToRender) {
 
     return results;
 }
+
 
 //TODO: Check
 Ray RayTracer::calculateRay(const Camera& camera, int x, int y) {
@@ -146,8 +149,15 @@ bool RayTracer::intersectTriangle(Triangle triangle, const Ray &ray, float &t) c
     return false;
 }
 
-RenderResult::RenderResult(const char *imageName, int width, int height) : image_name(imageName), width(width), height(height){
-    image = new unsigned char [width * height * 3];
+RenderResult::RenderResult(const char *imageName, int width, int height) : width(width), height(height) {
+    image_name = new char[strlen(imageName) + 1];
+    strcpy(image_name, imageName);
+
+    image = new unsigned char[width * height * 3];
+}
+
+RenderResult::~RenderResult() {
+    delete[] image;
 }
 
 void RenderResult::setPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b) {
