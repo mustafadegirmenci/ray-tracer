@@ -73,31 +73,27 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 
 //TODO: Check
 Ray RayTracer::calculateRay(const Camera& camera, int x, int y) {
-    // Calculate the direction vector from the camera position to the pixel on the image plane
-    float image_aspect_ratio = static_cast<float>(camera.image_width) / static_cast<float>(camera.image_height);
-    float pixel_width = 4.0f * camera.near_distance * tan(camera.near_plane.w / 2.0f);
-    float pixel_height = pixel_width / image_aspect_ratio;
+    // Convert pixel coordinates (x, y) to normalized device coordinates (-1 to 1)
+    float u = (static_cast<float>(x) / static_cast<float>(camera.image_width) - 0.5f) * 2.0f;
+    float v = (0.5f - static_cast<float>(y) / static_cast<float>(camera.image_height)) * 2.0f;
 
-    // Calculate the direction vector from the camera's "gaze" and "up" vectors
-    Vec3f right = camera.gaze.cross(camera.up).normalized();
-    Vec3f up = right.cross(camera.gaze).normalized();
-
-    // Calculate the point on the image plane corresponding to the pixel
-    float u = static_cast<float>(x) / static_cast<float>(camera.image_width - 1);
-    float v = static_cast<float>(y) / static_cast<float>(camera.image_height - 1);
+    // Calculate the direction vector from the camera position to the pixel on the near plane
+    Vec3f viewDir = camera.gaze.normalized();
+    Vec3f right = camera.up.cross(viewDir).normalized();
+    Vec3f up = viewDir.cross(right);
 
     // Calculate the point on the near plane
-    Vec3f near_plane_point = camera.position + camera.gaze * camera.near_distance +
-                             right * (u - 0.5f) * pixel_width +
-                             up * (v - 0.5f) * pixel_height;
+    Vec3f nearPlanePoint = camera.position + viewDir * camera.near_distance +
+                           right * u * camera.near_plane.x +
+                           up * v * camera.near_plane.y;
 
     // Calculate the ray direction
-    Vec3f ray_direction = (near_plane_point - camera.position).normalized();
+    Vec3f rayDirection = nearPlanePoint - camera.position;
 
     // Create and return the ray
     Ray ray;
     ray.origin = camera.position;
-    ray.direction = ray_direction;
+    ray.direction = rayDirection.normalized();
 
     return ray;
 }
