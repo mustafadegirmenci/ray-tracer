@@ -54,7 +54,8 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 				float tHit;
 				if (raycast(ray, hitObject, tHit)) {
 					// Set color as object's color
-					result->setPixel(x, y, (unsigned char) scene.materials[hitObject.material_id].diffuse.x, (unsigned char) scene.materials[hitObject.material_id].diffuse.y, (unsigned char) scene.materials[hitObject.material_id].diffuse.z);
+                    Vec3f mat = scene.materials[hitObject.material_id - 1].diffuse * 255;
+					result->setPixel(x, y, (unsigned char) mat.x, (unsigned char) mat.y, (unsigned char) mat.z);
 				}
 				else {
 					// Set color as background color
