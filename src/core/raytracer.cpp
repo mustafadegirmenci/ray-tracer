@@ -75,7 +75,7 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 Ray RayTracer::calculateRay(const Camera& camera, int x, int y) {
     // Calculate the direction vector from the camera position to the pixel on the image plane
     float image_aspect_ratio = static_cast<float>(camera.image_width) / static_cast<float>(camera.image_height);
-    float pixel_width = 2.0f * camera.near_distance * tan(camera.near_plane.w / 2.0f);
+    float pixel_width = 4.0f * camera.near_distance * tan(camera.near_plane.w / 2.0f);
     float pixel_height = pixel_width / image_aspect_ratio;
 
     // Calculate the direction vector from the camera's "gaze" and "up" vectors
@@ -103,7 +103,7 @@ Ray RayTracer::calculateRay(const Camera& camera, int x, int y) {
 }
 
 bool RayTracer::intersectSphere(Sphere sphere, const Ray& ray, float& t) const {
-	Vec3f oc = ray.origin - scene.vertex_data[sphere.center_vertex_id];
+	Vec3f oc = ray.origin - scene.vertex_data[sphere.center_vertex_id - 1];
 	float a = ray.direction.dot(ray.direction);
 	float b = 2.0f * oc.dot(ray.direction);
 	float c = oc.dot(oc) - sphere.radius * sphere.radius;
@@ -116,7 +116,7 @@ bool RayTracer::intersectSphere(Sphere sphere, const Ray& ray, float& t) const {
 		return true;
 	}
 	else if (discriminant == 0) {
-		float t = -b / (2.0f * a);
+		t = -b / (2.0f * a);
 		return true;
 	}
 
@@ -124,8 +124,8 @@ bool RayTracer::intersectSphere(Sphere sphere, const Ray& ray, float& t) const {
 }
 
 bool RayTracer::intersectTriangle(Triangle triangle, const Ray& ray, float& t) const {
-	Vec3f e1 = scene.vertex_data[triangle.indices.v1_id] - scene.vertex_data[triangle.indices.v0_id];
-	Vec3f e2 = scene.vertex_data[triangle.indices.v2_id] - scene.vertex_data[triangle.indices.v0_id];
+	Vec3f e1 = scene.vertex_data[triangle.indices.v1_id - 1] - scene.vertex_data[triangle.indices.v0_id - 1];
+	Vec3f e2 = scene.vertex_data[triangle.indices.v2_id - 1] - scene.vertex_data[triangle.indices.v0_id - 1];
 	Vec3f h = ray.direction.cross(e2);
 	float a = e1.dot(h);
 
@@ -133,7 +133,7 @@ bool RayTracer::intersectTriangle(Triangle triangle, const Ray& ray, float& t) c
 		return false;
 
 	float f = 1.0f / a;
-	Vec3f s = ray.origin - scene.vertex_data[triangle.indices.v0_id];
+	Vec3f s = ray.origin - scene.vertex_data[triangle.indices.v0_id - 1];
 	float u = f * s.dot(h);
 
 	if (u < 0.0f || u > 1.0f)
