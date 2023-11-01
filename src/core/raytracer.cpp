@@ -161,6 +161,4 @@ void RenderResult::setPixel(int x, int y, unsigned char r, unsigned char g, unsi
 	image[index].r = r;
 	image[index].g = g;
 	image[index].b = b;
-
-	if (index == 640001) std::cout << "hit" << std::endl;
 }

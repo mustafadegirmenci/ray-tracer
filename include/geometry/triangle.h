@@ -7,6 +7,10 @@ class Triangle : public RenderObject
 {
 public:
     Face indices;
+    Vec3f normal;
+    Vec3f getNormal(const Scene& scene);
+private:
+    bool isCalculated = false;
 };
 
 
