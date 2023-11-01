@@ -35,7 +35,6 @@ bool RayTracer::raycast(const Ray& ray, RenderObject& hitObject, float& tMin) {
 	return hit;
 }
 
-//TODO: Complete
 vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 	scene = sceneToRender;
 
@@ -50,11 +49,11 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 			for (int x = 0; x < camera.image_width; x++) {
 				Ray ray = calculateRay(camera, x, y);
 
-				RenderObject hitObject{};
+				RenderObject hitObject {};
 				float tHit;
 				if (raycast(ray, hitObject, tHit)) {
 					// Set color as object's color
-                    Vec3f mat = scene.materials[hitObject.material_id - 1].diffuse * 255;
+					Vec3f mat = scene.materials[hitObject.material_id - 1].diffuse * 255;
 					result->setPixel(x, y, (unsigned char) mat.x, (unsigned char) mat.y, (unsigned char) mat.z);
 				}
 				else {
@@ -70,32 +69,28 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 	return results;
 }
 
-
-//TODO: Check
 Ray RayTracer::calculateRay(const Camera& camera, int x, int y) {
-    // Convert pixel coordinates (x, y) to normalized device coordinates (-1 to 1)
-    float u = (static_cast<float>(x) / static_cast<float>(camera.image_width) - 0.5f) * 2.0f;
-    float v = (0.5f - static_cast<float>(y) / static_cast<float>(camera.image_height)) * 2.0f;
+	Ray ray;
 
-    // Calculate the direction vector from the camera position to the pixel on the near plane
-    Vec3f viewDir = camera.gaze.normalized();
-    Vec3f right = camera.up.cross(viewDir).normalized();
-    Vec3f up = viewDir.cross(right);
+	Vec3f v = camera.up.normalized();
+	Vec3f w = (camera.gaze * -1).normalized();
+	Vec3f u = v.cross(w).normalized();
 
-    // Calculate the point on the near plane
-    Vec3f nearPlanePoint = camera.position + viewDir * camera.near_distance +
-                           right * u * camera.near_plane.x +
-                           up * v * camera.near_plane.y;
+	Vec3f e = camera.position;
+	float distance = camera.near_distance;
 
-    // Calculate the ray direction
-    Vec3f rayDirection = nearPlanePoint - camera.position;
+	Vec3f m = e - w * distance;
+	Vec3f q = m + u * camera.near_plane.x + v * camera.near_plane.w;
 
-    // Create and return the ray
-    Ray ray;
-    ray.origin = camera.position;
-    ray.direction = rayDirection.normalized();
+	float su = (x + 0.5f) * (camera.near_plane.y - camera.near_plane.x) / camera.image_width;
+	float sv = (y + 0.5f) * (camera.near_plane.w - camera.near_plane.z) / camera.image_height;
 
-    return ray;
+	Vec3f s = q + u * su - v * sv;
+
+	ray.origin = e;
+	ray.direction = s - e;
+
+	return ray;
 }
 
 bool RayTracer::intersectSphere(Sphere sphere, const Ray& ray, float& t) const {
@@ -157,6 +152,7 @@ RenderResult::RenderResult(const char* imageName, int width, int height) : width
 }
 
 RenderResult::~RenderResult() {
+	delete[] image_name;
 	delete[] image;
 }
 
