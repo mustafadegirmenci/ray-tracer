@@ -51,6 +51,9 @@ struct Camera
     float near_distance;
     int image_width, image_height;
     string image_name;
+
+    Vec3f u, v, w;
+    float pixel_width, pixel_height;
 };
 
 struct PointLight

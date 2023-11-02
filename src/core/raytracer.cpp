@@ -76,18 +76,17 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 Ray RayTracer::calculateViewingRay(const Camera& camera, int x, int y) {
 	Ray ray;
 
-	Vec3f v = camera.up.normalized();
-	Vec3f w = (camera.gaze * -1).normalized();
-	Vec3f u = v.cross(w).normalized();
+	Vec3f v = camera.v;
+	Vec3f w = camera.w;
+	Vec3f u = camera.u;
 
 	Vec3f e = camera.position;
-	float distance = camera.near_distance;
 
-	Vec3f m = e - w * distance;
+	Vec3f m = e - w * camera.near_distance;
 	Vec3f q = m + u * camera.near_plane.x + v * camera.near_plane.w;
 
-	float su = (x + 0.5f) * (camera.near_plane.y - camera.near_plane.x) / camera.image_width;
-	float sv = (y + 0.5f) * (camera.near_plane.w - camera.near_plane.z) / camera.image_height;
+	float su = (x + 0.5f) *  camera.pixel_width;
+	float sv = (y + 0.5f) * camera.pixel_height;
 
 	Vec3f s = q + u * su - v * sv;
 
