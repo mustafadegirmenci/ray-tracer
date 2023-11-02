@@ -53,10 +53,28 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 				float tHit;
 				if (raycast(ray, hitObject, tHit)) {
 					// TODO: Can be optimized by storing this value inside the hitObject
+					Vec3f diffuseColor, specularColor;
 					Vec3f color = scene.ambient_light * scene.materials[hitObject.material_id - 1].ambient;
+					bool isContinue;
+
+					for (size_t i = 0; i < sceneToRender.point_lights.size(); i++)
+					{
+						PointLight light = sceneToRender.point_lights[i];
+						Vec3f intersectionPoint = ray.origin + tHit * ray.direction;
+						Ray shadowRay = calculateShadowRay(intersectionPoint,light.position);
+
+						RenderObject pObject;
+						float tObject;
+						float tLight = (light.position - shadowRay.origin).x / shadowRay.direction.x;
+						if (raycast(shadowRay, pObject, tObject) && tObject < tLight) {
+							continue;
+						}
+
+						// color += Ld + Ls;
+					}
 
 					// Set color as object's color
-					color = color + scene.materials[hitObject.material_id - 1].diffuse * 255;
+					/*color = color + scene.materials[hitObject.material_id - 1].diffuse * 255;*/
 					color = clamp(color);
 					result->setPixel(x, y, (unsigned char) color.x, (unsigned char) color.y, (unsigned char) color.z);
 				}
