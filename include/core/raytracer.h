@@ -25,10 +25,11 @@ public:
     vector<RenderResult*> render(const Scene&);
 
 private:
-    Ray calculateRay(const Camera& camera, int x, int y);
-    bool raycast(const Ray& ray, RenderObject& hitObject, float &tMin);
+    Ray calculateViewingRay(const Camera& camera, int x, int y);
     bool intersectSphere(Sphere sphere, const Ray& ray, float& t) const;
     bool intersectTriangle(Triangle triangle, const Ray& ray, float& t) const;
+    bool raycast(const Ray& ray, RenderObject& hitObject, float &tMin);
+    Ray calculateShadowRay(const Vec3f& origin, const Vec3f& destination);
     Vec3f clamp(Vec3f& x);
 };
 

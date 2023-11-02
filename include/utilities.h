@@ -19,7 +19,9 @@ struct Vec3f
     Vec3f operator+(const Vec3f& other) const;
     Vec3f operator-(const Vec3f& other) const;
     Vec3f operator*(float scalar) const;
+    Vec3f operator*(const Vec3f& other) const;
     Vec3f operator/(float scalar) const;
+    Vec3f operator/(const Vec3f& other) const;
     float dot(const Vec3f& other) const;
     Vec3f cross(const Vec3f& other) const;
     float length() const;

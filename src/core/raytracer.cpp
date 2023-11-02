@@ -47,20 +47,18 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 
 		for (int y = 0; y < camera.image_height; y++) {
 			for (int x = 0; x < camera.image_width; x++) {
-				Ray ray = calculateRay(camera, x, y);
+				Ray ray = calculateViewingRay(camera, x, y);
 
 				RenderObject hitObject {};
 				float tHit;
 				if (raycast(ray, hitObject, tHit)) {
-					Vec3f mat;
-					mat.x = scene.ambient_light.x * scene.materials[hitObject.material_id - 1].ambient.x;
-					mat.y = scene.ambient_light.y * scene.materials[hitObject.material_id - 1].ambient.y;
-					mat.z = scene.ambient_light.z * scene.materials[hitObject.material_id - 1].ambient.z;
+					// TODO: Can be optimized by storing this value inside the hitObject
+					Vec3f color = scene.ambient_light * scene.materials[hitObject.material_id - 1].ambient;
 
 					// Set color as object's color
-					mat = mat + scene.materials[hitObject.material_id - 1].diffuse * 255;
-					mat = clamp(mat);
-					result->setPixel(x, y, (unsigned char) mat.x, (unsigned char) mat.y, (unsigned char) mat.z);
+					color = color + scene.materials[hitObject.material_id - 1].diffuse * 255;
+					color = clamp(color);
+					result->setPixel(x, y, (unsigned char) color.x, (unsigned char) color.y, (unsigned char) color.z);
 				}
 				else {
 					// Set color as background color
@@ -75,7 +73,7 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 	return results;
 }
 
-Ray RayTracer::calculateRay(const Camera& camera, int x, int y) {
+Ray RayTracer::calculateViewingRay(const Camera& camera, int x, int y) {
 	Ray ray;
 
 	Vec3f v = camera.up.normalized();
@@ -162,6 +160,17 @@ Vec3f RayTracer::clamp(Vec3f& x)
 	else if (x.z < 0)	x.z = 0;
 
 	return x;
+}
+
+Ray RayTracer::calculateShadowRay(const Vec3f& origin, const Vec3f& destination)
+{
+	Ray ray;
+
+	// Calculate direction as the normalized vector from origin to destination
+	ray.origin = origin;
+	ray.direction = (destination - origin).normalized();
+
+	return ray;
 }
 
 RenderResult::RenderResult(const char* imageName, int width, int height) : width(width), height(height) {
