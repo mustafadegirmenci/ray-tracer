@@ -52,8 +52,13 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 				RenderObject hitObject {};
 				float tHit;
 				if (raycast(ray, hitObject, tHit)) {
+					Vec3f mat;
+					mat.x = scene.ambient_light.x * scene.materials[hitObject.material_id - 1].ambient.x;
+					mat.y = scene.ambient_light.y * scene.materials[hitObject.material_id - 1].ambient.y;
+					mat.z = scene.ambient_light.z * scene.materials[hitObject.material_id - 1].ambient.z;
+
 					// Set color as object's color
-					Vec3f mat = scene.materials[hitObject.material_id - 1].diffuse * 255;
+					mat = mat + scene.materials[hitObject.material_id - 1].diffuse * 255;
 					mat = clamp(mat);
 					result->setPixel(x, y, (unsigned char) mat.x, (unsigned char) mat.y, (unsigned char) mat.z);
 				}
