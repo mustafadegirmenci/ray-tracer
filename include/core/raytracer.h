@@ -29,6 +29,7 @@ private:
     bool raycast(const Ray& ray, RenderObject& hitObject, float &tMin);
     bool intersectSphere(Sphere sphere, const Ray& ray, float& t) const;
     bool intersectTriangle(Triangle triangle, const Ray& ray, float& t) const;
+    Vec3f clamp(Vec3f& x);
 };
 
 #endif // RAYTRACER_H

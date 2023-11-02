@@ -54,6 +54,7 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 				if (raycast(ray, hitObject, tHit)) {
 					// Set color as object's color
 					Vec3f mat = scene.materials[hitObject.material_id - 1].diffuse * 255;
+					mat = clamp(mat);
 					result->setPixel(x, y, (unsigned char) mat.x, (unsigned char) mat.y, (unsigned char) mat.z);
 				}
 				else {
@@ -142,6 +143,20 @@ bool RayTracer::intersectTriangle(Triangle triangle, const Ray& ray, float& t) c
 		return true;
 
 	return false;
+}
+
+Vec3f RayTracer::clamp(Vec3f& x)
+{
+	if (x.x > 255)	x.x = 255;
+	else if (x.x < 0)	x.x = 0;
+
+	if (x.y > 255)	x.y = 255;
+	else if (x.y < 0)	x.y = 0;
+
+	if (x.z > 255)	x.z = 255;
+	else if (x.z < 0)	x.z = 0;
+
+	return x;
 }
 
 RenderResult::RenderResult(const char* imageName, int width, int height) : width(width), height(height) {
