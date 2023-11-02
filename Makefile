@@ -1,3 +1,5 @@
+# TODO: -O3 option should be included to improve performance while compiling
+
 CC = g++
 CFLAGS = -std=c++11
 
