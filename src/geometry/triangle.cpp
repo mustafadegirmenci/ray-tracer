@@ -1,15 +1,15 @@
 #include "../../include/geometry/triangle.h"
 
-Vec3f Triangle::getNormal(const Scene& scene) override {
+Vec3f Triangle::getNormal(const Scene& scene, const Vec3f& intersectionPoint) {
 	if (isCalculated) {
 		return normal;
 	}
 
 	Vec3f v1, v2, v3;
 
-	v1 = scene.vertex_data[indices.v0_id];
-	v2 = scene.vertex_data[indices.v1_id];
-	v3 = scene.vertex_data[indices.v2_id];
+	v1 = scene.vertex_data[indices.v0_id - 1];
+	v2 = scene.vertex_data[indices.v1_id - 1];
+	v3 = scene.vertex_data[indices.v2_id - 1];
 
 	// Calculate two edges of the triangle
 	Vec3f edge1 = v2 - v1;

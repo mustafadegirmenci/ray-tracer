@@ -8,7 +8,7 @@ class Triangle : public RenderObject
 public:
     Face indices;
     Vec3f normal;
-    Vec3f getNormal(const Scene& scene) override;
+    Vec3f getNormal(const Scene& scene, const Vec3f& intersectionPoint) override;
     
 private:
     bool isCalculated = false;

@@ -72,9 +72,9 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 						}
 
 						Vec3f normal;
-						
+						normal = hitObject.getNormal(sceneToRender, intersectionPoint);
 
-						diffuseColor = calculateDiffuse(mat,shadowRay,);
+						diffuseColor = calculateDiffuse(mat,shadowRay,normal);
 						//specularColor = calculateSpecular();
 						color = color + diffuseColor + specularColor;
 					}
