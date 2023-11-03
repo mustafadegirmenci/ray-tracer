@@ -53,15 +53,16 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 				float tHit;
 				if (raycast(ray, hitObject, tHit)) {
 					// TODO: Can be optimized by storing this value inside the hitObject
+					Material mat = scene.materials[hitObject.material_id - 1];
 					Vec3f diffuseColor, specularColor;
-					Vec3f color = scene.ambient_light * scene.materials[hitObject.material_id - 1].ambient;
+					Vec3f color = scene.ambient_light * mat.ambient;
 					bool isContinue;
 
 					for (size_t i = 0; i < sceneToRender.point_lights.size(); i++)
 					{
 						PointLight light = sceneToRender.point_lights[i];
-						Vec3f intersectionPoint = ray.origin + tHit * ray.direction;
-						Ray shadowRay = calculateShadowRay(intersectionPoint,light.position);
+						Vec3f intersectionPoint = ray.origin + ray.direction * tHit;
+						Ray shadowRay = calculateShadowRay(intersectionPoint, light.position);
 
 						RenderObject pObject;
 						float tObject;
@@ -70,7 +71,12 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 							continue;
 						}
 
-						// color += Ld + Ls;
+						Vec3f normal;
+						
+
+						diffuseColor = calculateDiffuse(mat,shadowRay,);
+						//specularColor = calculateSpecular();
+						color = color + diffuseColor + specularColor;
 					}
 
 					// Set color as object's color
@@ -103,7 +109,7 @@ Ray RayTracer::calculateViewingRay(const Camera& camera, int x, int y) {
 	Vec3f m = e - w * camera.near_distance;
 	Vec3f q = m + u * camera.near_plane.x + v * camera.near_plane.w;
 
-	float su = (x + 0.5f) *  camera.pixel_width;
+	float su = (x + 0.5f) * camera.pixel_width;
 	float sv = (y + 0.5f) * camera.pixel_height;
 
 	Vec3f s = q + u * su - v * sv;
@@ -165,6 +171,43 @@ bool RayTracer::intersectTriangle(Triangle triangle, const Ray& ray, float& t) c
 	return false;
 }
 
+Ray RayTracer::calculateShadowRay(const Vec3f& origin, const Vec3f& destination)
+{
+	Ray ray;
+
+	// Calculate direction as the normalized vector from origin to destination
+	ray.origin = origin;
+	ray.direction = (destination - origin).normalized();
+
+	return ray;
+}
+
+Vec3f RayTracer::calculateDiffuse(const Material& mat, const Ray& shadowRay, const Vec3f& surfaceNormal)
+{
+	Vec3f color;
+
+	// Calculate light direction from the surface point to the light source
+	Vec3f lightDirection = shadowRay.direction;
+
+	// Calculate the diffuse reflection component using Lambert's cosine law
+	float diffuseIntensity = std::max(0.0f, surfaceNormal.dot(lightDirection));
+
+	// Diffuse reflection color
+	Vec3f diffuseColor = mat.diffuse;
+
+	// Calculate the final diffuse reflection contribution
+	color = diffuseColor * diffuseIntensity;
+
+	return color;
+}
+
+Vec3f RayTracer::calculateSpecular(const Vec3f& lightPosition, const Vec3f& surfacePoint, const Vec3f& surfaceNormal, const Vec3f& viewDirection, float shininess)
+{
+	Vec3f color;
+
+	return color;
+}
+
 Vec3f RayTracer::clamp(Vec3f& x)
 {
 	if (x.x > 255)	x.x = 255;
@@ -177,17 +220,6 @@ Vec3f RayTracer::clamp(Vec3f& x)
 	else if (x.z < 0)	x.z = 0;
 
 	return x;
-}
-
-Ray RayTracer::calculateShadowRay(const Vec3f& origin, const Vec3f& destination)
-{
-	Ray ray;
-
-	// Calculate direction as the normalized vector from origin to destination
-	ray.origin = origin;
-	ray.direction = (destination - origin).normalized();
-
-	return ray;
 }
 
 RenderResult::RenderResult(const char* imageName, int width, int height) : width(width), height(height) {

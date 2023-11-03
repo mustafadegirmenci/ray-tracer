@@ -8,6 +8,7 @@ class Sphere : public RenderObject
 public:
     int center_vertex_id;
     float radius;
+    Vec3f getNormal(const Scene& scene) override;
 };
 
 

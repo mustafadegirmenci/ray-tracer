@@ -1,6 +1,6 @@
 #include "../../include/geometry/triangle.h"
 
-Vec3f Triangle::getNormal(const Scene& scene) {
+Vec3f Triangle::getNormal(const Scene& scene) override {
 	if (isCalculated) {
 		return normal;
 	}
