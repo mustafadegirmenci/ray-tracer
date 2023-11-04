@@ -3,8 +3,8 @@
 #include <cstring>
 #include <iostream>
 
-bool RayTracer::raycast(const Ray& ray, RenderObject& hitObject, float& tMin) {
-	bool hit = false;
+RenderObject* RayTracer::raycast(const Ray& ray, float& tMin) {
+    RenderObject* hitObject = nullptr;
 
 	tMin = std::numeric_limits<float>::max();
 
@@ -13,10 +13,9 @@ bool RayTracer::raycast(const Ray& ray, RenderObject& hitObject, float& tMin) {
 	size_t sphereCount = scene.spheres.size();
 
 	for (int i = 0; i < sphereCount; i++) {
-		if (intersectSphere(scene.spheres[i], ray, tSphere) && tSphere < tMin) {
-			hit = true;
+		if (scene.spheres[i].intersect(ray, tSphere) && tSphere < tMin) {
 			tMin = tSphere;
-			hitObject = scene.spheres[i];
+			hitObject = &scene.spheres[i];
 		}
 	}
 
@@ -25,14 +24,13 @@ bool RayTracer::raycast(const Ray& ray, RenderObject& hitObject, float& tMin) {
 	size_t triangleCount = scene.triangles.size();
 
 	for (int i = 0; i < triangleCount; i++) {
-		if (intersectTriangle(scene.triangles[i], ray, tTriangle) && tTriangle < tMin) {
-			hit = true;
+		if (scene.triangles[i].intersect(ray, tTriangle) && tTriangle < tMin) {
 			tMin = tTriangle;
-			hitObject = scene.triangles[i];
+			hitObject = &scene.triangles[i];
 		}
 	}
 
-	return hit;
+	return hitObject;
 }
 
 vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
@@ -49,11 +47,11 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 			for (int x = 0; x < camera.image_width; x++) {
 				Ray ray = calculateViewingRay(camera, x, y);
 
-				RenderObject hitObject {};
-				float tHit;
-				if (raycast(ray, hitObject, tHit)) {
+                float tHit;
+				RenderObject* hitObject = raycast(ray, tHit);
+				if (hitObject != nullptr) {
 					// TODO: Can be optimized by storing this value inside the hitObject
-					Material mat = scene.materials[hitObject.material_id];
+					Material mat = scene.materials[hitObject->material_id];
 					Vec3f diffuseColor, specularColor;
 					Vec3f color = scene.ambient_light * mat.ambient;
 					bool isContinue;
@@ -64,15 +62,15 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 						Vec3f intersectionPoint = ray.origin + ray.direction * tHit;
 						Ray shadowRay = calculateShadowRay(intersectionPoint, light.position);
 
-						RenderObject pObject;
 						float tObject;
+                        RenderObject* pObject = raycast(shadowRay, tObject);
 						float tLight = (light.position - shadowRay.origin).x / shadowRay.direction.x;
-						if (raycast(shadowRay, pObject, tObject) && tObject < tLight) {
+						if (pObject != nullptr && tObject < tLight) {
 							continue;
 						}
 
 						Vec3f normal;
-						normal = hitObject.getNormal(sceneToRender, intersectionPoint);
+						normal = hitObject->getNormal(sceneToRender, intersectionPoint);
 
 						diffuseColor = calculateDiffuse(mat,shadowRay,normal);
 						//specularColor = calculateSpecular();
@@ -118,57 +116,6 @@ Ray RayTracer::calculateViewingRay(const Camera& camera, int x, int y) {
 	ray.direction = s - e;
 
 	return ray;
-}
-
-bool RayTracer::intersectSphere(const Sphere& sphere, const Ray& ray, float& t) const {
-	Vec3f oc = ray.origin - sphere.center_vertex;
-	float a = ray.direction.dot(ray.direction);
-	float b = 2.0f * oc.dot(ray.direction);
-	float c = oc.dot(oc) - sphere.radius * sphere.radius;
-	float discriminant = b * b - 4 * a * c;
-
-	if (discriminant > 0) {
-		float t1 = (-b - std::sqrt(discriminant)) / (2.0f * a);
-		float t2 = (-b + std::sqrt(discriminant)) / (2.0f * a);
-		t = (t1 < t2) ? t1 : t2;
-		return true;
-	}
-	else if (discriminant == 0) {
-		t = -b / (2.0f * a);
-		return true;
-	}
-
-	return false;
-}
-
-bool RayTracer::intersectTriangle(const Triangle& triangle, const Ray& ray, float& t) const {
-	Vec3f e1 = triangle.vertex_1 - triangle.vertex_0;
-	Vec3f e2 = triangle.vertex_2 - triangle.vertex_0;
-	Vec3f h = ray.direction.cross(e2);
-	float a = e1.dot(h);
-
-	if (a > -std::numeric_limits<float>::epsilon() && a < std::numeric_limits<float>::epsilon())
-		return false;
-
-	float f = 1.0f / a;
-	Vec3f s = ray.origin - triangle.vertex_0;
-	float u = f * s.dot(h);
-
-	if (u < 0.0f || u > 1.0f)
-		return false;
-
-	Vec3f q = s.cross(e1);
-	float v = f * ray.direction.dot(q);
-
-	if (v < 0.0f || u + v > 1.0f)
-		return false;
-
-	t = f * e2.dot(q);
-
-	if (t > std::numeric_limits<float>::epsilon())
-		return true;
-
-	return false;
 }
 
 Ray RayTracer::calculateShadowRay(const Vec3f& origin, const Vec3f& destination)

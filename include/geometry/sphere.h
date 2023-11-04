@@ -9,6 +9,7 @@ public:
     Vec3f center_vertex;
     float radius;
     Vec3f getNormal(const Scene& scene, const Vec3f& intersectionPoint) override;
+    bool intersect(const Ray &ray, float &t) override;
 };
 
 

@@ -26,9 +26,7 @@ public:
 
 private:
 	Ray calculateViewingRay(const Camera& camera, int x, int y);
-	bool intersectSphere(const Sphere& sphere, const Ray& ray, float& t) const;
-	bool intersectTriangle(const Triangle& triangle, const Ray& ray, float& t) const;
-	bool raycast(const Ray& ray, RenderObject& hitObject, float& tMin);
+    RenderObject* raycast(const Ray& ray, float& tMin);
 	Ray calculateShadowRay(const Vec3f& origin, const Vec3f& destination);
 	Vec3f calculateDiffuse(const Material& mat, const Ray& shadowRay, const Vec3f& surfaceNormal);
 	Vec3f calculateSpecular(const Vec3f& lightPosition, const Vec3f& surfacePoint, const Vec3f& surfaceNormal, const Vec3f& viewDirection, float shininess);

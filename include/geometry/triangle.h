@@ -11,6 +11,7 @@ public:
     Vec3f vertex_2;
     Vec3f normal;
     Vec3f getNormal(const Scene& scene, const Vec3f& intersectionPoint) override;
+    bool intersect(const Ray &ray, float &t) override;
 
 private:
     bool isCalculated = false;
