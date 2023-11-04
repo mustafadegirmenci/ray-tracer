@@ -43,9 +43,9 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 					Material mat = scene.materials[hitObject->material_id];
 					Vec3f diffuseColor, specularColor;
 					Vec3f color = scene.ambient_light * mat.ambient;
-					bool isContinue;
 
-					for (size_t i = 0; i < sceneToRender.point_lights.size(); i++)
+                    size_t lightCount = sceneToRender.point_lights.size();
+					for (size_t i = 0; i < lightCount; i++)
 					{
 						PointLight light = sceneToRender.point_lights[i];
 						Vec3f intersectionPoint = ray.origin + ray.direction * tHit;
@@ -54,9 +54,9 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 						float tObject;
                         RenderObject* pObject = raycast(shadowRay, tObject);
 						float tLight = (light.position - shadowRay.origin).x / shadowRay.direction.x;
-						if (pObject != nullptr && tObject < tLight) {
-							continue;
-						}
+//						if (pObject != nullptr && tObject < tLight) {
+//							continue;
+//						}
 
 						Vec3f normal;
 						normal = hitObject->getNormal(sceneToRender, intersectionPoint);
@@ -69,7 +69,7 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 					// Set color as object's color
 					/*color = color + scene.materials[hitObject.material_id - 1].diffuse * 255;*/
 					color = clamp(color);
-					result->setPixel(x, y, (unsigned char) color.x, (unsigned char) color.y, (unsigned char) color.z);
+					result->setPixel(x, y, (unsigned char) (int)color.x, (unsigned char) (int)color.y, (unsigned char) (int)color.z);
 				}
 				else {
 					// Set color as background color

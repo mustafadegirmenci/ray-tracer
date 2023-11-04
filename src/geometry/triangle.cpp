@@ -13,7 +13,7 @@ Vec3f Triangle::getNormal(const Scene& scene, const Vec3f& intersectionPoint) {
 	normal = edge1.cross(edge2);
 
 	// Normalize the normal vector
-	normal.normalized();
+    normal = normal.normalized();
 
 	isCalculated = true;
 

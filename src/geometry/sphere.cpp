@@ -6,7 +6,7 @@ Vec3f Sphere::getNormal(const Scene& scene, const Vec3f& intersectionPoint)
 	Vec3f normal = intersectionPoint - center_vertex;
 
 	// Normalize the normal vector to obtain a unit normal vector
-	normal.normalized();
+    normal = normal.normalized();
 
 	return normal;
 }

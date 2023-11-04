@@ -139,11 +139,16 @@ Scene Importer::importXml(const std::string &filepath)
         child = element->FirstChildElement("PhongExponent");
         stream << child->GetText() << std::endl;
 
-        stream >> material.ambient.x >> material.ambient.y >> material.ambient.z;
-        stream >> material.diffuse.x >> material.diffuse.y >> material.diffuse.z;
-        stream >> material.specular.x >> material.specular.y >> material.specular.z;
-        stream >> material.mirror.x >> material.mirror.y >> material.mirror.z;
+        Vec3f ambient, diffuse, specular, mirror;
+        stream >> ambient.x >> ambient.y >> ambient.z;
+        stream >> diffuse.x >> diffuse.y >> diffuse.z;
+        stream >> specular.x >> specular.y >> specular.z;
+        stream >> mirror.x >> mirror.y >> mirror.z;
         stream >> material.phong_exponent;
+        material.ambient = ambient;
+        material.diffuse = diffuse * 255;
+        material.specular = specular * 255;
+        material.mirror = mirror * 255;
 
         scene.materials.push_back(material);
         element = element->NextSiblingElement("Material");
