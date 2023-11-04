@@ -4,9 +4,9 @@
 #include <string>
 #include <cmath>
 #include <vector>
+#include <memory>
 
-class Triangle;
-class Sphere;
+class RenderObject;
 
 using namespace std;
 
@@ -89,8 +89,7 @@ struct Scene
     std::vector<PointLight> point_lights;
     std::vector<Material> materials;
     std::vector<Vec3f> vertex_data;
-    std::vector<Triangle> triangles;
-    std::vector<Sphere> spheres;
+    std::vector<RenderObject*> render_objects;
 };
 
 #endif //RAY_TRACER_UTILITIES_H

@@ -173,16 +173,19 @@ Scene Importer::importXml(const std::string &filepath)
 
         child = element->FirstChildElement("Faces");
         stream << child->GetText() << std::endl;
-        Triangle mesh_triangle;
-        mesh_triangle.material_id = mesh_material_id - 1;
-        int v0id, v1id, v2id;
+
+        int v0id;
         while (!(stream >> v0id).eof())
         {
+            auto* mesh_triangle = new Triangle();
+            mesh_triangle->material_id = mesh_material_id - 1;
+            int v1id, v2id;
+
             stream >> v1id >> v2id;
-            mesh_triangle.vertex_0 = scene.vertex_data[v0id - 1];
-            mesh_triangle.vertex_1 = scene.vertex_data[v1id - 1];
-            mesh_triangle.vertex_2 = scene.vertex_data[v2id - 1];
-            scene.triangles.push_back(mesh_triangle);
+            mesh_triangle->vertex_0 = scene.vertex_data[v0id - 1];
+            mesh_triangle->vertex_1 = scene.vertex_data[v1id - 1];
+            mesh_triangle->vertex_2 = scene.vertex_data[v2id - 1];
+            scene.render_objects.push_back(mesh_triangle);
         }
         stream.clear();
 
@@ -193,7 +196,7 @@ Scene Importer::importXml(const std::string &filepath)
     //Get Triangles
     element = root->FirstChildElement("Objects");
     element = element->FirstChildElement("Triangle");
-    Triangle triangle;
+    auto* triangle = new Triangle();
     while (element)
     {
         child = element->FirstChildElement("Material");
@@ -201,25 +204,25 @@ Scene Importer::importXml(const std::string &filepath)
 
         int matid;
         stream >> matid;
-        triangle.material_id = matid - 1;
+        triangle->material_id = matid - 1;
 
         child = element->FirstChildElement("Indices");
         stream << child->GetText() << std::endl;
 
         int v0id, v1id, v2id;
         stream >> v0id >> v1id >> v2id;
-        triangle.vertex_0 = scene.vertex_data[v0id - 1];
-        triangle.vertex_1 = scene.vertex_data[v1id - 1];
-        triangle.vertex_2 = scene.vertex_data[v2id - 1];
+        triangle->vertex_0 = scene.vertex_data[v0id - 1];
+        triangle->vertex_1 = scene.vertex_data[v1id - 1];
+        triangle->vertex_2 = scene.vertex_data[v2id - 1];
 
-        scene.triangles.push_back(triangle);
+        scene.render_objects.push_back(triangle);
         element = element->NextSiblingElement("Triangle");
     }
 
     //Get Spheres
     element = root->FirstChildElement("Objects");
     element = element->FirstChildElement("Sphere");
-    Sphere sphere;
+    auto* sphere = new Sphere();
     while (element)
     {
         child = element->FirstChildElement("Material");
@@ -227,7 +230,7 @@ Scene Importer::importXml(const std::string &filepath)
 
         int matid;
         stream >> matid;
-        sphere.material_id = matid - 1;
+        sphere->material_id = matid - 1;
 
         child = element->FirstChildElement("Center");
 
@@ -235,13 +238,13 @@ Scene Importer::importXml(const std::string &filepath)
 
         int centervid;
         stream >> centervid;
-        sphere.center_vertex = scene.vertex_data[centervid - 1];
+        sphere->center_vertex = scene.vertex_data[centervid - 1];
 
         child = element->FirstChildElement("Radius");
         stream << child->GetText() << std::endl;
-        stream >> sphere.radius;
+        stream >> sphere->radius;
 
-        scene.spheres.push_back(sphere);
+        scene.render_objects.push_back(sphere);
         element = element->NextSiblingElement("Sphere");
     }
 

@@ -8,25 +8,14 @@ RenderObject* RayTracer::raycast(const Ray& ray, float& tMin) {
 
 	tMin = std::numeric_limits<float>::max();
 
-	//Trace spheres
-	float tSphere;
-	size_t sphereCount = scene.spheres.size();
+	//Trace render objects
+	float tRenderObject;
+	size_t renderObjectCount = scene.render_objects.size();
 
-	for (int i = 0; i < sphereCount; i++) {
-		if (scene.spheres[i].intersect(ray, tSphere) && tSphere < tMin) {
-			tMin = tSphere;
-			hitObject = &scene.spheres[i];
-		}
-	}
-
-	//Trace triangles
-	float tTriangle;
-	size_t triangleCount = scene.triangles.size();
-
-	for (int i = 0; i < triangleCount; i++) {
-		if (scene.triangles[i].intersect(ray, tTriangle) && tTriangle < tMin) {
-			tMin = tTriangle;
-			hitObject = &scene.triangles[i];
+	for (int i = 0; i < renderObjectCount; i++) {
+		if (scene.render_objects[i]->intersect(ray, tRenderObject) && tRenderObject < tMin) {
+			tMin = tRenderObject;
+			hitObject = scene.render_objects[i];
 		}
 	}
 
