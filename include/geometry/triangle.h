@@ -6,10 +6,12 @@
 class Triangle : public RenderObject
 {
 public:
-    Face indices;
+    Vec3f vertex_0;
+    Vec3f vertex_1;
+    Vec3f vertex_2;
     Vec3f normal;
     Vec3f getNormal(const Scene& scene, const Vec3f& intersectionPoint) override;
-    
+
 private:
     bool isCalculated = false;
 };

@@ -174,10 +174,14 @@ Scene Importer::importXml(const std::string &filepath)
         child = element->FirstChildElement("Faces");
         stream << child->GetText() << std::endl;
         Triangle mesh_triangle;
-        mesh_triangle.material_id = mesh_material_id;
-        while (!(stream >> mesh_triangle.indices.v0_id).eof())
+        mesh_triangle.material_id = mesh_material_id - 1;
+        int v0id, v1id, v2id;
+        while (!(stream >> v0id).eof())
         {
-            stream >> mesh_triangle.indices.v1_id >> mesh_triangle.indices.v2_id;
+            stream >> v1id >> v2id;
+            mesh_triangle.vertex_0 = scene.vertex_data[v0id - 1];
+            mesh_triangle.vertex_1 = scene.vertex_data[v1id - 1];
+            mesh_triangle.vertex_2 = scene.vertex_data[v2id - 1];
             scene.triangles.push_back(mesh_triangle);
         }
         stream.clear();
@@ -194,11 +198,19 @@ Scene Importer::importXml(const std::string &filepath)
     {
         child = element->FirstChildElement("Material");
         stream << child->GetText() << std::endl;
-        stream >> triangle.material_id;
+
+        int matid;
+        stream >> matid;
+        triangle.material_id = matid - 1;
 
         child = element->FirstChildElement("Indices");
         stream << child->GetText() << std::endl;
-        stream >> triangle.indices.v0_id >> triangle.indices.v1_id >> triangle.indices.v2_id;
+
+        int v0id, v1id, v2id;
+        stream >> v0id >> v1id >> v2id;
+        triangle.vertex_0 = scene.vertex_data[v0id - 1];
+        triangle.vertex_1 = scene.vertex_data[v1id - 1];
+        triangle.vertex_2 = scene.vertex_data[v2id - 1];
 
         scene.triangles.push_back(triangle);
         element = element->NextSiblingElement("Triangle");
@@ -212,11 +224,18 @@ Scene Importer::importXml(const std::string &filepath)
     {
         child = element->FirstChildElement("Material");
         stream << child->GetText() << std::endl;
-        stream >> sphere.material_id;
+
+        int matid;
+        stream >> matid;
+        sphere.material_id = matid - 1;
 
         child = element->FirstChildElement("Center");
+
         stream << child->GetText() << std::endl;
-        stream >> sphere.center_vertex_id;
+
+        int centervid;
+        stream >> centervid;
+        sphere.center_vertex = scene.vertex_data[centervid - 1];
 
         child = element->FirstChildElement("Radius");
         stream << child->GetText() << std::endl;

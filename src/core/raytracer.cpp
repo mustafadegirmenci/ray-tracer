@@ -53,7 +53,7 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 				float tHit;
 				if (raycast(ray, hitObject, tHit)) {
 					// TODO: Can be optimized by storing this value inside the hitObject
-					Material mat = scene.materials[hitObject.material_id - 1];
+					Material mat = scene.materials[hitObject.material_id];
 					Vec3f diffuseColor, specularColor;
 					Vec3f color = scene.ambient_light * mat.ambient;
 					bool isContinue;
@@ -120,8 +120,8 @@ Ray RayTracer::calculateViewingRay(const Camera& camera, int x, int y) {
 	return ray;
 }
 
-bool RayTracer::intersectSphere(Sphere sphere, const Ray& ray, float& t) const {
-	Vec3f oc = ray.origin - scene.vertex_data[sphere.center_vertex_id - 1];
+bool RayTracer::intersectSphere(const Sphere& sphere, const Ray& ray, float& t) const {
+	Vec3f oc = ray.origin - sphere.center_vertex;
 	float a = ray.direction.dot(ray.direction);
 	float b = 2.0f * oc.dot(ray.direction);
 	float c = oc.dot(oc) - sphere.radius * sphere.radius;
@@ -141,9 +141,9 @@ bool RayTracer::intersectSphere(Sphere sphere, const Ray& ray, float& t) const {
 	return false;
 }
 
-bool RayTracer::intersectTriangle(Triangle triangle, const Ray& ray, float& t) const {
-	Vec3f e1 = scene.vertex_data[triangle.indices.v1_id - 1] - scene.vertex_data[triangle.indices.v0_id - 1];
-	Vec3f e2 = scene.vertex_data[triangle.indices.v2_id - 1] - scene.vertex_data[triangle.indices.v0_id - 1];
+bool RayTracer::intersectTriangle(const Triangle& triangle, const Ray& ray, float& t) const {
+	Vec3f e1 = triangle.vertex_1 - triangle.vertex_0;
+	Vec3f e2 = triangle.vertex_2 - triangle.vertex_0;
 	Vec3f h = ray.direction.cross(e2);
 	float a = e1.dot(h);
 
@@ -151,7 +151,7 @@ bool RayTracer::intersectTriangle(Triangle triangle, const Ray& ray, float& t) c
 		return false;
 
 	float f = 1.0f / a;
-	Vec3f s = ray.origin - scene.vertex_data[triangle.indices.v0_id - 1];
+	Vec3f s = ray.origin - triangle.vertex_0;
 	float u = f * s.dot(h);
 
 	if (u < 0.0f || u > 1.0f)
