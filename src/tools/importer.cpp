@@ -147,7 +147,7 @@ Scene Importer::importXml(const std::string &filepath)
         stream >> material.phong_exponent;
         material.ambient = ambient;
         material.diffuse = diffuse * 255;
-        material.specular = specular * 255;
+        material.specular = specular;
         material.mirror = mirror * 255;
 
         scene.materials.push_back(material);
@@ -227,9 +227,11 @@ Scene Importer::importXml(const std::string &filepath)
     //Get Spheres
     element = root->FirstChildElement("Objects");
     element = element->FirstChildElement("Sphere");
-    auto* sphere = new Sphere();
+
     while (element)
     {
+        auto* sphere = new Sphere();
+
         child = element->FirstChildElement("Material");
         stream << child->GetText() << std::endl;
 

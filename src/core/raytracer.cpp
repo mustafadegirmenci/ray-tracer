@@ -55,9 +55,9 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 						RenderObject* pObject = raycast(shadowRay, tObject);
 						float tLight = (light.position - shadowRay.origin).x / shadowRay.direction.x;
 
-						//if (pObject != nullptr && tObject < tLight) {
-						//	continue;
-						//}
+//						if (pObject != nullptr && tObject < tLight) {
+//							continue;
+//						}
 
 						Vec3f normal;
 						normal = hitObject->getNormal(sceneToRender, intersectionPoint);
@@ -102,7 +102,7 @@ Ray RayTracer::calculateViewingRay(const Camera& camera, int x, int y) {
 	Vec3f s = q + u * su - v * sv;
 
 	ray.origin = e;
-	ray.direction = s - e;
+	ray.direction = (s - e).normalized();
 
 	return ray;
 }
@@ -114,7 +114,7 @@ Ray RayTracer::calculateShadowRay(const Vec3f& origin, const Vec3f& destination,
 	// Calculate direction as the normalized vector from origin to destination
 	ray.origin = origin;
 	ray.direction = (destination - origin).normalized();
-	ray.direction = ray.direction * epsilon;
+    //ray.direction = ray.direction * epsilon;
 
 	return ray;
 }
@@ -139,24 +139,10 @@ Vec3f RayTracer::calculateDiffuse(const Material& mat, const Ray& shadowRay, con
 }
 
 Vec3f RayTracer::calculateSpecular(const Material& mat, const Ray& shadowRay, const Vec3f& surfaceNormal, const Vec3f& viewDirection, const Vec3f& lightIntensity) {
+    Vec3f color;
 
-	Vec3f color;
-	float shininess = mat.phong_exponent;
 
-	// Calculate the reflection direction using the formula: R = 2(N . L)N - L
-	Vec3f lightDirection = shadowRay.direction;
-	Vec3f reflectionDirection = surfaceNormal * 2 * surfaceNormal.dot(lightDirection) - lightDirection;
-
-	// Calculate the specular intensity using the view direction and reflection direction
-	float specularIntensity = std::pow(std::max(0.0f, reflectionDirection.dot(viewDirection)), shininess);
-
-	// Specular reflection color
-	Vec3f specularColor = mat.specular;
-
-	// Calculate the final specular reflection contribution
-	color = specularColor * lightIntensity * specularIntensity;
-
-	return color;
+    return color;
 }
 
 Vec3f RayTracer::clamp(Vec3f& x)

@@ -15,7 +15,13 @@ bool Sphere::intersect(const Ray &ray, float &t) {
     Vec3f oc = ray.origin - center_vertex;
     float a = ray.direction.dot(ray.direction);
     float b = 2.0f * oc.dot(ray.direction);
-    float c = oc.dot(oc) - radius * radius;
+
+    float dot_oc = oc.dot(oc);
+
+    if (dot_oc > -std::numeric_limits<float>::epsilon() && dot_oc < std::numeric_limits<float>::epsilon())
+        return false;
+
+    float c = dot_oc - radius * radius;
     float discriminant = b * b - 4 * a * c;
 
     if (discriminant > 0) {
