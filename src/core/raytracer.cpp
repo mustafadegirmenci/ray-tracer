@@ -3,7 +3,7 @@
 #include <cstring>
 #include <iostream>
 
-RenderObject* RayTracer::raycast(Ray* ray, float& tMin) {
+RenderObject* RayTracer::raycast(Ray* ray, float& tMin, RenderObject* ignoredObject) {
 	RenderObject* hitObject = nullptr;
 
 	tMin = std::numeric_limits<float>::max();
@@ -14,6 +14,9 @@ RenderObject* RayTracer::raycast(Ray* ray, float& tMin) {
 
 	for (int i = 0; i < renderObjectCount; i++) {
 		if (scene.render_objects[i]->intersect(ray, tRenderObject) && tRenderObject < tMin) {
+            if (scene.render_objects[i] == ignoredObject){
+                continue;
+            }
 			tMin = tRenderObject;
 			hitObject = scene.render_objects[i];
 		}
@@ -35,7 +38,9 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 		for (int y = 0; y < camera.image_height; y++) {
 			for (int x = 0; x < camera.image_width; x++) {
                 Ray rayFromCamera = calculateRayFromCamera(camera, x, y);
-				Vec3f computedColor = computeColor(&rayFromCamera);
+                rayFromCamera.depth = 0;
+
+				Vec3f computedColor = computeColor(&rayFromCamera, nullptr);
                 computedColor = clamp(computedColor);
                 result->setPixel(x, y,
                                  (unsigned char )(int)(computedColor.x),
@@ -50,14 +55,14 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 	return results;
 }
 
-Vec3f RayTracer::computeColor(Ray *ray) {
+Vec3f RayTracer::computeColor(Ray *ray, RenderObject* ignoredObject) {
 
     if (ray->depth > scene.max_recursion_depth){
-        return Vec3f();
+        return Vec3f(0, 0, 0);
     }
 
     float tHit;
-    RenderObject* hitObject = raycast(ray, tHit);
+    RenderObject* hitObject = raycast(ray, tHit, ignoredObject);
 
     if (hitObject != nullptr){
         return applyShading(hitObject, ray, tHit);
@@ -67,7 +72,7 @@ Vec3f RayTracer::computeColor(Ray *ray) {
         return Vec3f(bg.r, bg.g, bg.b);
     }
     else{
-        return Vec3f();
+        return Vec3f(0, 0, 0);
     }
 }
 
@@ -78,31 +83,44 @@ Vec3f RayTracer::applyShading(RenderObject* hitObject, Ray* ray, const float& tH
     Vec3f intersectionNormal = hitObject->getNormal(scene, intersectionPoint);
     size_t lightCount = scene.point_lights.size();
 
-    Vec3f shadedColor;
+    Vec3f shadedColor = scene.ambient_light * mat.ambient;
 
     if (mat.is_mirror){
 
         auto* reflectionRay = new Ray();
         reflectionRay->origin = intersectionPoint;
-        reflectionRay->direction = ray->direction +intersectionNormal * 2 * (intersectionNormal.dot(ray->direction));
+        reflectionRay->direction = (ray->direction + intersectionNormal * 2 * (intersectionNormal.dot(ray->direction * -1))).normalized();
 
         reflectionRay->depth = ray->depth + 1;
-        shadedColor = shadedColor + computeColor(reflectionRay) * mat.mirror;
+        shadedColor = shadedColor + computeColor(reflectionRay, hitObject) * mat.mirror;
     }
 
     for (size_t lightIndex = 0; lightIndex < lightCount; lightIndex++) {
         PointLight light = scene.point_lights[lightIndex];
-        Ray rayFromLight = calculateRayFromLight(intersectionPoint, light.position);
+
+        Ray rayToLight;
+        rayToLight.origin = intersectionPoint;
+        rayToLight.direction = light.position - intersectionPoint;
+
+        auto* shadowRay = new Ray();
+        shadowRay->origin = rayToLight.origin + intersectionNormal * scene.shadow_ray_epsilon;
+        shadowRay->direction = rayToLight.direction;
+        float tShadowRay;
+
+        RenderObject* lightBlockerObject = raycast(shadowRay, tShadowRay, hitObject);
+        if (lightBlockerObject != nullptr && tShadowRay < rayToLight.direction.length()){
+            continue;
+        }
 
         shadedColor = shadedColor + calculateDiffuse(
                 mat,
-                rayFromLight,
+                rayToLight,
                 intersectionNormal);
 
         shadedColor = shadedColor + calculateSpecular(
                 mat,
                 light,
-                rayFromLight.direction,
+                rayToLight.direction,
                 ray->direction * -1,
                 intersectionPoint,
                 intersectionNormal);
@@ -130,16 +148,6 @@ Ray RayTracer::calculateRayFromCamera(const Camera& camera, int x, int y) {
 
 	ray.origin = e;
 	ray.direction = (s - e).normalized();
-
-	return ray;
-}
-
-Ray RayTracer::calculateRayFromLight(const Vec3f& origin, const Vec3f& destination)
-{
-	Ray ray;
-
-	ray.origin = origin;
-	ray.direction = destination - origin;
 
 	return ray;
 }

@@ -26,8 +26,7 @@ public:
 
 private:
 	Ray calculateRayFromCamera(const Camera& camera, int x, int y);
-    RenderObject* raycast(Ray* ray, float& tMin);
-	Ray calculateRayFromLight(const Vec3f& origin, const Vec3f& destination);
+    RenderObject* raycast(Ray* ray, float& tMin, RenderObject* ignoredObject);
 	Vec3f calculateDiffuse(const Material& mat, const Ray& rayFromLight, const Vec3f& surfaceNormal);
     Vec3f calculateIrradiance(const PointLight& pointLight, const Vec3f& intersectionPoint);
 	Vec3f clamp(Vec3f& x);
@@ -40,7 +39,7 @@ private:
 
     Vec3f applyShading(RenderObject *hitObject, Ray* ray, const float &tHit);
 
-    Vec3f computeColor(Ray *ray);
+    Vec3f computeColor(Ray *ray, RenderObject* ignoredObject);
 };
 
 #endif // RAYTRACER_H
