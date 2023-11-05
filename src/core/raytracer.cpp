@@ -43,28 +43,30 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 					Material mat = scene.materials[hitObject->material_id];
 					Vec3f diffuseColor, specularColor;
 					Vec3f color = scene.ambient_light * mat.ambient;
+					Vec3f intersectionPoint = rayFromCamera.origin + rayFromCamera.direction * tHit;
+					Vec3f normal = hitObject->getNormal(sceneToRender, intersectionPoint);
 
 					size_t lightCount = sceneToRender.point_lights.size();
 					for (size_t i = 0; i < lightCount; i++)
 					{
 						PointLight light = sceneToRender.point_lights[i];
-						Vec3f intersectionPoint = rayFromCamera.origin + rayFromCamera.direction * tHit;
 						Ray rayFromLight = calculateRayFromLight(intersectionPoint, light.position);
 
-                        Vec3f normal = hitObject->getNormal(sceneToRender, intersectionPoint);
 
 						diffuseColor = calculateDiffuse(mat, rayFromLight, normal);
 
 						specularColor = calculateSpecular(
-                                mat,
-                                light,
-                                rayFromLight.direction,
-                                rayFromCamera.direction * -1,
-                                intersectionPoint,
-                                normal
-                                );
+							mat,
+							light,
+							rayFromLight.direction,
+							rayFromCamera.direction * -1,
+							intersectionPoint,
+							normal
+						);
 						color = color + diffuseColor + specularColor;
 					}
+
+					if (mat.is_mirror)	color = color + calculateReflectance(sceneToRender, rayFromCamera, intersectionPoint, normal, mat, sceneToRender.max_recursion_depth);
 
 					// Set color as object's color
 					color = clamp(color);
@@ -135,33 +137,66 @@ Vec3f RayTracer::calculateDiffuse(const Material& mat, const Ray& rayFromLight, 
 	return color;
 }
 
-Vec3f RayTracer::calculateIrradiance(const PointLight& pointLight, const Vec3f& intersectionPoint){
-    Vec3f irradiance;
+Vec3f RayTracer::calculateIrradiance(const PointLight& pointLight, const Vec3f& intersectionPoint) {
+	Vec3f irradiance;
 
-    Vec3f d = pointLight.position - intersectionPoint;
-    float d_square = d.dot(d);
+	Vec3f d = pointLight.position - intersectionPoint;
+	float d_square = d.dot(d);
 
-    if (d_square != 0.0f){
-        irradiance.x = pointLight.intensity.x/d_square;
-        irradiance.y = pointLight.intensity.y/d_square;
-        irradiance.z = pointLight.intensity.z/d_square;
-    }
+	if (d_square != 0.0f) {
+		irradiance.x = pointLight.intensity.x / d_square;
+		irradiance.y = pointLight.intensity.y / d_square;
+		irradiance.z = pointLight.intensity.z / d_square;
+	}
 
-    return irradiance;
+	return irradiance;
 }
 
 Vec3f RayTracer::calculateSpecular(const Material& mat,
-                                   const PointLight& pointLight,
-                                   const Vec3f& rayDirectionFromIntersectionToLight,
-                                   const Vec3f& rayDirectionFromIntersectionToCamera,
-                                   const Vec3f& intersectionPoint,
-                                   const Vec3f& intersectionNormal) {
-    Vec3f sum = rayDirectionFromIntersectionToLight.normalized() + rayDirectionFromIntersectionToCamera.normalized();
-    Vec3f halfVector = ((sum) / (sum.length())).normalized();
+	const PointLight& pointLight,
+	const Vec3f& rayDirectionFromIntersectionToLight,
+	const Vec3f& rayDirectionFromIntersectionToCamera,
+	const Vec3f& intersectionPoint,
+	const Vec3f& intersectionNormal) {
+	Vec3f sum = rayDirectionFromIntersectionToLight.normalized() + rayDirectionFromIntersectionToCamera.normalized();
+	Vec3f halfVector = ((sum) / (sum.length())).normalized();
 
-    float cosAlpha = max(0.0f, intersectionNormal.dot(halfVector));
+	float cosAlpha = max(0.0f, intersectionNormal.dot(halfVector));
 
-    return mat.specular * pow(cosAlpha, mat.phong_exponent) * calculateIrradiance(pointLight, intersectionPoint);
+	return mat.specular * pow(cosAlpha, mat.phong_exponent) * calculateIrradiance(pointLight, intersectionPoint);
+}
+
+Vec3f RayTracer::calculateReflectance(const Scene& scene, const Ray& ray, const Vec3f& intersectionPoint, const Vec3f& normal, const Material& mat, const int& depth)
+{
+	Vec3f color(0, 0, 0);
+
+	if (depth == 0) {
+		return color;
+	}
+
+	Ray reflectedRay;
+
+	reflectedRay.origin = intersectionPoint;
+
+	reflectedRay.direction = (normal * -2 * ray.direction.dot(normal) + ray.direction).normalized();
+
+	Vec3f directionEpsilon = reflectedRay.direction * scene.shadow_ray_epsilon;
+	reflectedRay.origin = reflectedRay.origin + directionEpsilon;
+
+	float tHit;
+	RenderObject* hitObject = raycast(reflectedRay, tHit);
+
+	if (hitObject != nullptr)
+	{
+		Vec3f intersectionP = reflectedRay.origin + reflectedRay.direction * tHit;
+		Vec3f normalP = hitObject->getNormal(scene, intersectionP);
+		Material mat = scene.materials[hitObject->material_id];
+		color = calculateReflectance(reflectedRay, intersectionP, normalP, mat, scene.shadow_ray_epsilon, depth - 1);
+	}
+
+	color = color * mat.mirror;
+
+	return color;
 }
 
 Vec3f RayTracer::clamp(Vec3f& x)
