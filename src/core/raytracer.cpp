@@ -57,7 +57,7 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 
 Vec3f RayTracer::computeColor(Ray *ray, RenderObject* ignoredObject) {
 
-    if (ray->depth > scene.max_recursion_depth){
+    if (ray->depth >= scene.max_recursion_depth){
         return Vec3f(0, 0, 0);
     }
 
@@ -92,7 +92,7 @@ Vec3f RayTracer::applyShading(RenderObject* hitObject, Ray* ray, const float& tH
         reflectionRay->direction = (ray->direction + intersectionNormal * 2 * (intersectionNormal.dot(ray->direction * -1))).normalized();
 
         reflectionRay->depth = ray->depth + 1;
-        shadedColor = shadedColor + computeColor(reflectionRay, hitObject) * mat.mirror;
+        shadedColor = shadedColor + computeColor(reflectionRay, hitObject) * (mat.mirror);
     }
 
     for (size_t lightIndex = 0; lightIndex < lightCount; lightIndex++) {
@@ -108,7 +108,7 @@ Vec3f RayTracer::applyShading(RenderObject* hitObject, Ray* ray, const float& tH
         float tShadowRay;
 
         RenderObject* lightBlockerObject = raycast(shadowRay, tShadowRay, hitObject);
-        if (lightBlockerObject != nullptr && tShadowRay < rayToLight.direction.length()){
+        if (lightBlockerObject != nullptr && tShadowRay < tHit){
             continue;
         }
 
@@ -184,7 +184,7 @@ Vec3f RayTracer::calculateSpecular(const Material& mat,
                                    const Vec3f& rayDirectionFromIntersectionToCamera,
                                    const Vec3f& intersectionPoint,
                                    const Vec3f& intersectionNormal) {
-    Vec3f sum = rayDirectionFromIntersectionToLight.normalized() + rayDirectionFromIntersectionToCamera.normalized();
+    Vec3f sum = (rayDirectionFromIntersectionToLight.normalized() + rayDirectionFromIntersectionToCamera.normalized());
     Vec3f halfVector = ((sum) / (sum.length())).normalized();
 
     float cosAlpha = max(0.0f, intersectionNormal.dot(halfVector));

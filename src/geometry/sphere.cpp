@@ -28,6 +28,9 @@ bool Sphere::intersect(Ray* ray, float &t) {
         float t1 = (-b - std::sqrt(discriminant)) / (2.0f * a);
         float t2 = (-b + std::sqrt(discriminant)) / (2.0f * a);
         t = (t1 < t2) ? t1 : t2;
+        if (t < 0){
+            return false;
+        }
         return true;
     }
     else if (discriminant == 0) {
