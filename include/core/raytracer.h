@@ -27,7 +27,7 @@ public:
 private:
 	Ray calculateRayFromCamera(const Camera& camera, int x, int y);
     RenderObject* raycast(Ray* ray, float& tMin, RenderObject* ignoredObject);
-	Vec3f calculateDiffuse(const Material& mat, const Ray& rayFromLight, const Vec3f& surfaceNormal);
+	Vec3f calculateDiffuse(const Material& mat, const Ray& rayFromLight, const Vec3f& surfaceNormal, const PointLight& light, const Vec3f& intersectionPoint);
     Vec3f calculateIrradiance(const PointLight& pointLight, const Vec3f& intersectionPoint);
 	Vec3f clamp(Vec3f& x);
 

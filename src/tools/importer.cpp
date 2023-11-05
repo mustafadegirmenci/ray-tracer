@@ -146,7 +146,7 @@ Scene Importer::importXml(const std::string &filepath)
         stream >> mirror.x >> mirror.y >> mirror.z;
         stream >> material.phong_exponent;
         material.ambient = ambient;
-        material.diffuse = diffuse * 255;
+        material.diffuse = diffuse;
         material.specular = specular;
         material.mirror = mirror;
 

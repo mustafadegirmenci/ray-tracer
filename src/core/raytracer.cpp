@@ -107,15 +107,14 @@ Vec3f RayTracer::applyShading(RenderObject* hitObject, Ray* ray, const float& tH
         shadowRay->direction = rayToLight.direction;
         float tShadowRay;
 
-        RenderObject* lightBlockerObject = raycast(shadowRay, tShadowRay, hitObject);
-        if (lightBlockerObject != nullptr && tShadowRay < tHit){
-            continue;
-        }
+        RenderObject* lightBlockerObject = raycast(shadowRay, tShadowRay, hitObject);if (lightBlockerObject != nullptr && tShadowRay < tHit)continue;
 
         shadedColor = shadedColor + calculateDiffuse(
                 mat,
                 rayToLight,
-                intersectionNormal);
+                intersectionNormal,
+                light,
+                intersectionPoint);
 
         shadedColor = shadedColor + calculateSpecular(
                 mat,
@@ -152,13 +151,13 @@ Ray RayTracer::calculateRayFromCamera(const Camera& camera, int x, int y) {
 	return ray;
 }
 
-Vec3f RayTracer::calculateDiffuse(const Material& mat, const Ray& rayFromLight, const Vec3f& surfaceNormal)
+Vec3f RayTracer::calculateDiffuse(const Material& mat, const Ray& rayFromLight, const Vec3f& surfaceNormal, const PointLight& light, const Vec3f& intersectionPoint)
 {
 	Vec3f color;
 	Vec3f lightDirection = rayFromLight.direction.normalized();
-	float diffuseIntensity = std::max(0.0f, surfaceNormal.dot(lightDirection));
+	float cosTheta = std::max(0.0f, lightDirection.dot(surfaceNormal));
 	Vec3f diffuseColor = mat.diffuse;
-	color = diffuseColor * diffuseIntensity;
+	color = diffuseColor * cosTheta * calculateIrradiance(light, intersectionPoint);
 
 	return color;
 }
@@ -167,7 +166,7 @@ Vec3f RayTracer::calculateIrradiance(const PointLight& pointLight, const Vec3f& 
     Vec3f irradiance;
 
     Vec3f d = pointLight.position - intersectionPoint;
-    float d_square = d.dot(d);
+    float d_square = d.length() * d.length();
 
     if (d_square != 0.0f){
         irradiance.x = pointLight.intensity.x/d_square;
