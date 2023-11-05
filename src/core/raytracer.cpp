@@ -81,12 +81,13 @@ Vec3f RayTracer::applyShading(RenderObject* hitObject, Ray* ray, const float& tH
     Vec3f shadedColor;
 
     if (mat.is_mirror){
+
         auto* reflectionRay = new Ray();
         reflectionRay->origin = intersectionPoint;
-        reflectionRay->direction = (intersectionNormal * -2 * ray->direction.dot(intersectionNormal) + ray->direction).normalized();
+        reflectionRay->direction = ray->direction +intersectionNormal * 2 * (intersectionNormal.dot(ray->direction));
 
         reflectionRay->depth = ray->depth + 1;
-        shadedColor = shadedColor + computeColor(reflectionRay);
+        shadedColor = shadedColor + computeColor(reflectionRay) * mat.mirror;
     }
 
     for (size_t lightIndex = 0; lightIndex < lightCount; lightIndex++) {

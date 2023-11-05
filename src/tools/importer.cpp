@@ -148,7 +148,7 @@ Scene Importer::importXml(const std::string &filepath)
         material.ambient = ambient;
         material.diffuse = diffuse * 255;
         material.specular = specular;
-        material.mirror = mirror * 255;
+        material.mirror = mirror;
 
         scene.materials.push_back(material);
         element = element->NextSiblingElement("Material");
