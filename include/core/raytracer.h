@@ -29,7 +29,7 @@ private:
     RenderObject* raycast(const Ray& ray, float& tMin);
 	Ray calculateShadowRay(const Vec3f& origin, const Vec3f& destination);
 	Vec3f calculateDiffuse(const Material& mat, const Ray& shadowRay, const Vec3f& surfaceNormal);
-	Vec3f calculateSpecular(const Vec3f& lightPosition, const Vec3f& surfacePoint, const Vec3f& surfaceNormal, const Vec3f& viewDirection, float shininess);
+	Vec3f calculateSpecular(const Material& mat, const Ray& shadowRay, const Vec3f& surfaceNormal, const Vec3f& viewDirection, const Vec3f& lightIntensity);
 	Vec3f clamp(Vec3f& x);
 };
 

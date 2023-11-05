@@ -4,7 +4,7 @@
 #include <iostream>
 
 RenderObject* RayTracer::raycast(const Ray& ray, float& tMin) {
-    RenderObject* hitObject = nullptr;
+	RenderObject* hitObject = nullptr;
 
 	tMin = std::numeric_limits<float>::max();
 
@@ -36,7 +36,7 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 			for (int x = 0; x < camera.image_width; x++) {
 				Ray ray = calculateViewingRay(camera, x, y);
 
-                float tHit;
+				float tHit;
 				RenderObject* hitObject = raycast(ray, tHit);
 				if (hitObject != nullptr) {
 					// TODO: Can be optimized by storing this value inside the hitObject
@@ -44,7 +44,7 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 					Vec3f diffuseColor, specularColor;
 					Vec3f color = scene.ambient_light * mat.ambient;
 
-                    size_t lightCount = sceneToRender.point_lights.size();
+					size_t lightCount = sceneToRender.point_lights.size();
 					for (size_t i = 0; i < lightCount; i++)
 					{
 						PointLight light = sceneToRender.point_lights[i];
@@ -52,24 +52,24 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 						Ray shadowRay = calculateShadowRay(intersectionPoint, light.position);
 
 						float tObject;
-                        RenderObject* pObject = raycast(shadowRay, tObject);
+						RenderObject* pObject = raycast(shadowRay, tObject);
 						float tLight = (light.position - shadowRay.origin).x / shadowRay.direction.x;
-//						if (pObject != nullptr && tObject < tLight) {
-//							continue;
-//						}
+
+						//if (pObject != nullptr && tObject < tLight) {
+						//	continue;
+						//}
 
 						Vec3f normal;
 						normal = hitObject->getNormal(sceneToRender, intersectionPoint);
 
-						diffuseColor = calculateDiffuse(mat,shadowRay,normal);
-						//specularColor = calculateSpecular();
+						diffuseColor = calculateDiffuse(mat, shadowRay, normal);
+						specularColor = calculateSpecular(mat, shadowRay, normal, ray.direction * -1, light.intensity);
 						color = color + diffuseColor + specularColor;
 					}
 
 					// Set color as object's color
-					/*color = color + scene.materials[hitObject.material_id - 1].diffuse * 255;*/
 					color = clamp(color);
-					result->setPixel(x, y, (unsigned char) (int)color.x, (unsigned char) (int)color.y, (unsigned char) (int)color.z);
+					result->setPixel(x, y, (unsigned char) (int) color.x, (unsigned char) (int) color.y, (unsigned char) (int) color.z);
 				}
 				else {
 					// Set color as background color
@@ -137,9 +137,23 @@ Vec3f RayTracer::calculateDiffuse(const Material& mat, const Ray& shadowRay, con
 	return color;
 }
 
-Vec3f RayTracer::calculateSpecular(const Vec3f& lightPosition, const Vec3f& surfacePoint, const Vec3f& surfaceNormal, const Vec3f& viewDirection, float shininess)
-{
+Vec3f RayTracer::calculateSpecular(const Material& mat, const Ray& shadowRay, const Vec3f& surfaceNormal, const Vec3f& viewDirection, const Vec3f& lightIntensity) {
+
 	Vec3f color;
+	float shininess = mat.phong_exponent;
+
+	// Calculate the reflection direction using the formula: R = 2(N . L)N - L
+	Vec3f lightDirection = shadowRay.direction;
+	Vec3f reflectionDirection = 2 * surfaceNormal.dot(lightDirection) * surfaceNormal - lightDirection;
+
+	// Calculate the specular intensity using the view direction and reflection direction
+	float specularIntensity = std::pow(std::max(0.0f, reflectionDirection.dot(viewDirection)), shininess);
+
+	// Specular reflection color
+	Vec3f specularColor = mat.specular;
+
+	// Calculate the final specular reflection contribution
+	color = specularColor * lightIntensity * specularIntensity;
 
 	return color;
 }
