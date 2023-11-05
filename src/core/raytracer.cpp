@@ -35,7 +35,7 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 		for (int y = 0; y < camera.image_height; y++) {
 			for (int x = 0; x < camera.image_width; x++) {
                 Ray rayFromCamera = calculateRayFromCamera(camera, x, y);
-				Vec3f computedColor = computeColor(result, &rayFromCamera, camera, x, y);
+				Vec3f computedColor = computeColor(&rayFromCamera);
                 computedColor = clamp(computedColor);
                 result->setPixel(x, y,
                                  (unsigned char )(int)(computedColor.x),
@@ -50,7 +50,7 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 	return results;
 }
 
-Vec3f RayTracer::computeColor(RenderResult* result, Ray* ray, const Camera& camera, int x, int y){
+Vec3f RayTracer::computeColor(Ray *ray) {
 
     if (ray->depth > scene.max_recursion_depth){
         return Vec3f();
@@ -71,14 +71,23 @@ Vec3f RayTracer::computeColor(RenderResult* result, Ray* ray, const Camera& came
     }
 }
 
-Vec3f RayTracer::applyShading(RenderObject* hitObject, Ray* rayFromCamera, const float& tHit){
+Vec3f RayTracer::applyShading(RenderObject* hitObject, Ray* ray, const float& tHit){
 
     Material mat = scene.materials[hitObject->material_id];
-    Vec3f intersectionPoint = rayFromCamera->origin + rayFromCamera->direction * tHit;
+    Vec3f intersectionPoint = ray->origin + ray->direction * tHit;
     Vec3f intersectionNormal = hitObject->getNormal(scene, intersectionPoint);
     size_t lightCount = scene.point_lights.size();
 
     Vec3f shadedColor;
+
+    if (mat.is_mirror){
+        auto* reflectionRay = new Ray();
+        reflectionRay->origin = intersectionPoint;
+        reflectionRay->direction = (intersectionNormal * -2 * ray->direction.dot(intersectionNormal) + ray->direction).normalized();
+
+        reflectionRay->depth = ray->depth + 1;
+        shadedColor = shadedColor + computeColor(reflectionRay);
+    }
 
     for (size_t lightIndex = 0; lightIndex < lightCount; lightIndex++) {
         PointLight light = scene.point_lights[lightIndex];
@@ -93,7 +102,7 @@ Vec3f RayTracer::applyShading(RenderObject* hitObject, Ray* rayFromCamera, const
                 mat,
                 light,
                 rayFromLight.direction,
-                rayFromCamera->direction * -1,
+                ray->direction * -1,
                 intersectionPoint,
                 intersectionNormal);
     }

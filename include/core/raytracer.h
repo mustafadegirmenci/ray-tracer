@@ -38,9 +38,9 @@ private:
                       const Vec3f &rayDirectionFromIntersectionToCamera, const Vec3f &intersectionPoint,
                       const Vec3f &intersectionNormal);
 
-    Vec3f applyShading(RenderObject *hitObject, Ray* rayFromCamera, const float &tHit);
+    Vec3f applyShading(RenderObject *hitObject, Ray* ray, const float &tHit);
 
-    Vec3f computeColor(RenderResult *result, Ray* ray, const Camera &camera, int x, int y);
+    Vec3f computeColor(Ray *ray);
 };
 
 #endif // RAYTRACER_H
