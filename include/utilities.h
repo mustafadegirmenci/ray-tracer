@@ -40,6 +40,7 @@ struct Vec4f
 
 struct Ray {
     Vec3f origin, direction;
+    int depth;
 };
 
 struct Camera

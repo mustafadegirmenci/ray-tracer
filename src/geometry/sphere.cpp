@@ -11,10 +11,10 @@ Vec3f Sphere::getNormal(const Scene& scene, const Vec3f& intersectionPoint)
 	return normal;
 }
 
-bool Sphere::intersect(const Ray &ray, float &t) {
-    Vec3f oc = ray.origin - center_vertex;
-    float a = ray.direction.dot(ray.direction);
-    float b = 2.0f * oc.dot(ray.direction);
+bool Sphere::intersect(Ray* ray, float &t) {
+    Vec3f oc = ray->origin - center_vertex;
+    float a = ray->direction.dot(ray->direction);
+    float b = 2.0f * oc.dot(ray->direction);
 
     float dot_oc = oc.dot(oc);
 
