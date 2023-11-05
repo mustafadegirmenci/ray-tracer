@@ -49,7 +49,7 @@ vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
 					{
 						PointLight light = sceneToRender.point_lights[i];
 						Vec3f intersectionPoint = ray.origin + ray.direction * tHit;
-						Ray shadowRay = calculateShadowRay(intersectionPoint, light.position);
+						Ray shadowRay = calculateShadowRay(intersectionPoint, light.position, sceneToRender.shadow_ray_epsilon);
 
 						float tObject;
 						RenderObject* pObject = raycast(shadowRay, tObject);
@@ -107,13 +107,14 @@ Ray RayTracer::calculateViewingRay(const Camera& camera, int x, int y) {
 	return ray;
 }
 
-Ray RayTracer::calculateShadowRay(const Vec3f& origin, const Vec3f& destination)
+Ray RayTracer::calculateShadowRay(const Vec3f& origin, const Vec3f& destination, const float& epsilon)
 {
 	Ray ray;
 
 	// Calculate direction as the normalized vector from origin to destination
 	ray.origin = origin;
 	ray.direction = (destination - origin).normalized();
+	ray.direction = ray.direction * epsilon;
 
 	return ray;
 }
@@ -144,7 +145,7 @@ Vec3f RayTracer::calculateSpecular(const Material& mat, const Ray& shadowRay, co
 
 	// Calculate the reflection direction using the formula: R = 2(N . L)N - L
 	Vec3f lightDirection = shadowRay.direction;
-	Vec3f reflectionDirection = 2 * surfaceNormal.dot(lightDirection) * surfaceNormal - lightDirection;
+	Vec3f reflectionDirection = surfaceNormal * 2 * surfaceNormal.dot(lightDirection) - lightDirection;
 
 	// Calculate the specular intensity using the view direction and reflection direction
 	float specularIntensity = std::pow(std::max(0.0f, reflectionDirection.dot(viewDirection)), shininess);
