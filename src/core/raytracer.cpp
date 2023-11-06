@@ -13,10 +13,11 @@ RenderObject* RayTracer::raycast(Ray* ray, float& tMin, RenderObject* ignoredObj
 	size_t renderObjectCount = scene.render_objects.size();
 
 	for (int i = 0; i < renderObjectCount; i++) {
+        if (scene.render_objects[i] == ignoredObject){
+            continue;
+        }
+
 		if (scene.render_objects[i]->intersect(ray, tRenderObject) && tRenderObject < tMin) {
-            if (scene.render_objects[i] == ignoredObject){
-                continue;
-            }
 			tMin = tRenderObject;
 			hitObject = scene.render_objects[i];
 		}
@@ -99,15 +100,15 @@ Vec3f RayTracer::applyShading(RenderObject* hitObject, Ray* ray, const float& tH
         PointLight light = scene.point_lights[lightIndex];
 
         Ray rayToLight;
-        rayToLight.origin = intersectionPoint;
-        rayToLight.direction = light.position - intersectionPoint;
+        rayToLight.origin = intersectionPoint + intersectionNormal * scene.shadow_ray_epsilon;
+        rayToLight.direction = (light.position - intersectionPoint).normalized();
 
-        auto* shadowRay = new Ray();
-        shadowRay->origin = rayToLight.origin + intersectionNormal * scene.shadow_ray_epsilon;
-        shadowRay->direction = rayToLight.direction;
-        float tShadowRay;
+        float tBlocker;
 
-        RenderObject* lightBlockerObject = raycast(shadowRay, tShadowRay, hitObject);if (lightBlockerObject != nullptr && tShadowRay < tHit)continue;
+        RenderObject* lightBlockerObject = raycast(&rayToLight, tBlocker, hitObject);
+        if (lightBlockerObject != nullptr && tBlocker < (light.position - intersectionPoint).length() && tBlocker > 0){
+            continue;
+        }
 
         shadedColor = shadedColor + calculateDiffuse(
                 mat,

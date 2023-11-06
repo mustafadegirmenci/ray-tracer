@@ -44,8 +44,12 @@ bool Triangle::intersect(Ray* ray, float &t) {
 
     t = f * e2.dot(q);
 
-    if (t > std::numeric_limits<float>::epsilon())
+    if (t > std::numeric_limits<float>::epsilon()){
+        if (t < 0){
+            return false;
+        }
         return true;
+    }
 
     return false;
 }
