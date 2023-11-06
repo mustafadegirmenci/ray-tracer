@@ -17,7 +17,7 @@ RenderObject* RayTracer::raycast(Ray* ray, float& tMin, RenderObject* ignoredObj
             continue;
         }
 
-		if (scene.render_objects[i]->intersect(ray, tRenderObject) && tRenderObject < tMin) {
+		if (scene.render_objects[i]->intersect(ray, tRenderObject, scene.shadow_ray_epsilon) && tRenderObject < tMin) {
 			tMin = tRenderObject;
 			hitObject = scene.render_objects[i];
 		}

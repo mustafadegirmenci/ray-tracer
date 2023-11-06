@@ -20,13 +20,13 @@ Vec3f Triangle::getNormal(const Scene& scene, const Vec3f& intersectionPoint) {
 	return normal;
 }
 
-bool Triangle::intersect(Ray* ray, float &t) {
+bool Triangle::intersect(Ray* ray, float &t, const float& epsilon) {
     Vec3f e1 = vertex_1 - vertex_0;
     Vec3f e2 = vertex_2 - vertex_0;
     Vec3f h = ray->direction.cross(e2);
     float a = e1.dot(h);
 
-    if (a > -std::numeric_limits<float>::epsilon() && a < std::numeric_limits<float>::epsilon())
+    if (a > -epsilon && a < epsilon)
         return false;
 
     float f = 1.0f / a;
@@ -44,8 +44,12 @@ bool Triangle::intersect(Ray* ray, float &t) {
 
     t = f * e2.dot(q);
 
-    if (t < 0){
-        return false;
+    if (t > epsilon){
+        if (t < 0){
+            return false;
+        }
+        return true;
     }
-    return true;
+
+    return false;
 }

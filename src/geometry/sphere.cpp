@@ -11,14 +11,14 @@ Vec3f Sphere::getNormal(const Scene& scene, const Vec3f& intersectionPoint)
 	return normal;
 }
 
-bool Sphere::intersect(Ray* ray, float &t) {
+bool Sphere::intersect(Ray* ray, float &t, const float& epsilon) {
     Vec3f oc = ray->origin - center_vertex;
     float a = ray->direction.dot(ray->direction.normalized());
     float b = 2.0f * oc.dot(ray->direction);
 
     float dot_oc = oc.dot(oc);
 
-    if (dot_oc > -std::numeric_limits<float>::epsilon() && dot_oc < std::numeric_limits<float>::epsilon())
+    if (dot_oc > -epsilon && dot_oc < epsilon)
         return false;
 
     float c = dot_oc - radius * radius;
