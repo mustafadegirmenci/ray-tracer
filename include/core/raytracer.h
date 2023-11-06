@@ -4,6 +4,7 @@
 #include <vector>
 #include "../geometry/triangle.h"
 #include "../geometry/sphere.h"
+#include "threadPool.h"
 
 class RenderResult {
 public:
@@ -40,6 +41,9 @@ private:
     Vec3f applyShading(RenderObject *hitObject, Ray* ray, const float &tHit);
 
     Vec3f computeColor(Ray *ray, RenderObject* ignoredObject);
+
+    void
+    renderPartial(const Scene &scene, Camera camera, RenderResult *result, int startX, int endX, int startY, int endY);
 };
 
 #endif // RAYTRACER_H

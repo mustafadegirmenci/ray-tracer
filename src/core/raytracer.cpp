@@ -1,7 +1,7 @@
 #include "../../include/core/raytracer.h"
 #include <limits>
 #include <cstring>
-#include <iostream>
+#include <functional>
 
 RenderObject* RayTracer::raycast(Ray* ray, float& tMin, RenderObject* ignoredObject) {
 	RenderObject* hitObject = nullptr;
@@ -26,36 +26,51 @@ RenderObject* RayTracer::raycast(Ray* ray, float& tMin, RenderObject* ignoredObj
 	return hitObject;
 }
 
-vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
-	scene = sceneToRender;
+void RayTracer::renderPartial(const Scene& scene, Camera camera, RenderResult* result, int startX, int endX, int startY, int endY) {
+    for (int y = startY; y < endY; y++) {
+        for (int x = startX; x < endX; x++) {
+            Ray rayFromCamera = calculateRayFromCamera(camera, x, y);
+            rayFromCamera.depth = 0;
 
-	size_t cameraCount = scene.cameras.size();
-	vector<RenderResult*> results;
+            Vec3f computedColor = computeColor(&rayFromCamera, nullptr);
+            computedColor = clamp(computedColor);
+            result->setPixel(x, y, computedColor.x, computedColor.y, computedColor.z);
+        }
+    }
+}
 
-	for (int i = 0; i < cameraCount; i++) {
-		Camera camera = scene.cameras[i];
-		auto* result = new RenderResult(camera.image_name.c_str(), camera.image_width, camera.image_height);
+std::vector<RenderResult*> RayTracer::render(const Scene& sceneToRender) {
+    scene = sceneToRender;
+    size_t cameraCount = scene.cameras.size();
+    std::vector<RenderResult*> results;
 
-		for (int y = 0; y < camera.image_height; y++) {
-			for (int x = 0; x < camera.image_width; x++) {
-                Ray rayFromCamera = calculateRayFromCamera(camera, x, y);
-                rayFromCamera.depth = 0;
+    // Create a thread pool with the number of available hardware threads
+    unsigned int numThreads = 4;
+    ThreadPool threadPool(numThreads);
 
-				Vec3f computedColor = computeColor(&rayFromCamera, nullptr);
-                computedColor = clamp(computedColor);
-                result->setPixel(x, y, computedColor.x, computedColor.y, computedColor.z);
-            }
-		}
+    for (int i = 0; i < cameraCount; i++) {
+        Camera camera = scene.cameras[i];
+        auto* result = new RenderResult(camera.image_name.c_str(), camera.image_width, camera.image_height);
 
-		results.push_back(result);
-	}
+        // Divide the rendering task among threads using the thread pool
+        for (int t = 0; t < numThreads; t++) {
+            int startY = t * (camera.image_height / numThreads);
+            int endY = (t == numThreads - 1) ? camera.image_height : (t + 1) * (camera.image_height / numThreads);
 
-	return results;
+            threadPool.enqueue([this, camera, result, startY, endY]() {
+                renderPartial(scene, camera, result, 0, camera.image_width, startY, endY);
+            });
+        }
+
+        results.push_back(result);
+    }
+
+    return results;
 }
 
 Vec3f RayTracer::computeColor(Ray *ray, RenderObject* ignoredObject) {
 
-    if (ray->depth >= scene.max_recursion_depth){
+    if (ray->depth > scene.max_recursion_depth){
         return Vec3f(0, 0, 0);
     }
 

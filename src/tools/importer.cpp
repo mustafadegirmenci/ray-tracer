@@ -184,11 +184,12 @@ Scene Importer::importXml(const std::string &filepath)
         int v0id;
         while (!(stream >> v0id).eof())
         {
-            auto* mesh_triangle = new Triangle();
-            mesh_triangle->material_id = mesh_material_id - 1;
             int v1id, v2id;
 
             stream >> v1id >> v2id;
+
+            auto* mesh_triangle = new Triangle();
+            mesh_triangle->material_id = mesh_material_id - 1;
             mesh_triangle->vertex_0 = scene.vertex_data[v0id - 1];
             mesh_triangle->vertex_1 = scene.vertex_data[v1id - 1];
             mesh_triangle->vertex_2 = scene.vertex_data[v2id - 1];
