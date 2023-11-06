@@ -94,6 +94,8 @@ Scene Importer::importXml(const std::string &filepath)
         camera.u = camera.v.cross(camera.w).normalized();
         camera.pixel_width = (camera.near_plane.y - camera.near_plane.x) / camera.image_width;
         camera.pixel_height = (camera.near_plane.w - camera.near_plane.z) / camera.image_height;
+        camera.m = camera.m = camera.position - camera.w * camera.near_distance;
+        camera.q = camera.q = camera.m + camera.u * camera.near_plane.x + camera.v * camera.near_plane.w;
 
         scene.cameras.push_back(camera);
         element = element->NextSiblingElement("Camera");

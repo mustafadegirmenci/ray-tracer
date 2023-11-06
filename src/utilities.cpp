@@ -44,12 +44,26 @@ Vec3f Vec3f::cross(const Vec3f& other) const {
 }
 
 // Define the length of Vec3f
+float Vec3f::sqrLength() const {
+    if (!isSqrLengthCached){
+        cachedSqrLength = x * x + y * y + z * z;
+        isSqrLengthCached = true;
+    }
+
+    return cachedSqrLength;
+}
+
 float Vec3f::length() const {
-    return sqrt(x * x + y * y + z * z);
+    if (!isLengthCached){
+        cachedLength = sqrt(sqrLength());
+        isLengthCached = true;
+    }
+
+    return cachedLength;
 }
 
 // Define the normalized Vec3f
 Vec3f Vec3f::normalized() const {
-    float len = length();
-    return Vec3f(x / len, y / len, z / len);
+    float oldLength = length();
+    return Vec3f(x / oldLength, y / oldLength, z / oldLength);
 }

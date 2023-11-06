@@ -25,7 +25,14 @@ struct Vec3f
     float dot(const Vec3f& other) const;
     Vec3f cross(const Vec3f& other) const;
     float length() const;
+    float sqrLength() const;
     Vec3f normalized() const;
+
+    mutable bool isLengthCached = false;
+    mutable float cachedLength;
+
+    mutable bool isSqrLengthCached = false;
+    mutable float cachedSqrLength;
 };
 
 struct Color
@@ -53,7 +60,7 @@ struct Camera
     int image_width, image_height;
     string image_name;
 
-    Vec3f u, v, w;
+    Vec3f u, v, w, m, q;
     float pixel_width, pixel_height;
 };
 
