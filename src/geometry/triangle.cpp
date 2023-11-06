@@ -26,7 +26,7 @@ bool Triangle::intersect(Ray* ray, float &t, const float& epsilon) {
     Vec3f h = ray->direction.cross(e2);
     float a = e1.dot(h);
 
-    if (a > -epsilon && a < epsilon)
+    if (a > -std::numeric_limits<float>::epsilon() && a < std::numeric_limits<float>::epsilon())
         return false;
 
     float f = 1.0f / a;
@@ -44,12 +44,12 @@ bool Triangle::intersect(Ray* ray, float &t, const float& epsilon) {
 
     t = f * e2.dot(q);
 
-    if (t > epsilon){
-        if (t < 0){
-            return false;
-        }
-        return true;
+    if (t < 0){
+        return false;
     }
-
-    return false;
+    if (t > -std::numeric_limits<float>::epsilon() && a < std::numeric_limits<float>::epsilon())
+    {
+        return false;
+    }
+    return true;
 }
